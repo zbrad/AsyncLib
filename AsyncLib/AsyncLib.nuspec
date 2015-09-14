@@ -2,7 +2,7 @@
 <package >
   <metadata>
     <id>ZBrad.AsyncLib</id>
-    <version>1.0.0.0</version>
+    <version>1.0.0-beta</version>
     <title>ZBrad's Async Library</title>
     <authors>zbrad</authors>
     <owners>zbrad</owners>
@@ -23,6 +23,6 @@
     <tags>async collections</tags>
   </metadata>
   <files>
-    <file src="bin\release\*.dll" target="lib\net45" />
+    <file src="*.dll" target="lib\net45" />
   </files>
 </package>
