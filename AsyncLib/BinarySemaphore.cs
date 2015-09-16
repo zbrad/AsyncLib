@@ -20,15 +20,21 @@ namespace ZBrad.AsyncLib
 
         public int WaitCount { get { return waiters.Count; } }
 
-        public async Task<bool> WaitAsync(CancellationToken token)
+        public Task<bool> WaitAsync(CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return TaskEx.CancelledBool;
+
+            return wait(token);
+        }
+
+        async Task<bool> wait(CancellationToken token)
+        { 
             Waiter<bool> waiter = null;
             bool lockTaken = false;
             try
             {
                 spinner.Enter(ref lockTaken);
-                if (token.IsCancellationRequested)
-                    return false;
 
                 if (!this.IsLocked && this.waiters.Count == 0)
                 {
@@ -53,13 +59,9 @@ namespace ZBrad.AsyncLib
 
             bool hasLock = await waiter;
             if (token.IsCancellationRequested)
-            {
-                if (hasLock)
-                    Release();
                 token.ThrowIfCancellationRequested();
-            }
 
-            return hasLock;          
+            return hasLock;
         }
 
         private void Waiter_OnCancel(Waiter<bool> w)
@@ -76,6 +78,7 @@ namespace ZBrad.AsyncLib
                     spinner.Exit(false);
             }
 
+            // complete (cancel) waiter outside of spinlock
             w.Completed(false);
         }
 
@@ -87,7 +90,8 @@ namespace ZBrad.AsyncLib
         public void Release()
         {
             bool spinTaken = false;
-            Waiter<bool> a = null;
+            Waiter<bool> w = null;
+
             try
             {
                 spinner.Enter(ref spinTaken);
@@ -95,12 +99,16 @@ namespace ZBrad.AsyncLib
                     return;
 
                 this.IsLocked = false;
-                a = waiters.RemoveFromHead();
-                if (a == null)
-                    return;
 
-                // perform a lock operation if we dequeued an awaiter
-                this.IsLocked = true;
+                // check if any waiters
+                if (waiters.Count > 0)
+                {
+                    // get awaiter
+                    w = waiters.RemoveFromHead();
+
+                    // perform a lock operation if we dequeued an awaiter
+                    this.IsLocked = true;
+                }
             }
             finally
             {
@@ -108,8 +116,9 @@ namespace ZBrad.AsyncLib
                     spinner.Exit(false);
             }
 
-            // complete the awaiter
-            a.Completed(true);
+            // if waiter was removed, complete it, outside of spinlock
+            if (w != null)
+                w.Completed(IsLocked);
         }
     }
 }

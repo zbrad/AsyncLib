@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib
 {
-    internal class Ordered<T> : IOrdered<T>, INodeComparable<Ordered<T>> where T : IComparable<T>, IEquatable<T>
+    internal class Ordered<T> : IOrdered<T>, INodeComparable<Ordered<T>>, IEquatable<Ordered<T>> where T : IComparable<T>, IEquatable<T>
     {
         public T Item { get; set; }
         public INode Prev { get; set; }
@@ -64,6 +64,16 @@ namespace ZBrad.AsyncLib
         public override int GetHashCode()
         {
             return Item.GetHashCode();
+        }
+
+        public bool Equals(Ordered<T> other)
+        {
+            return Equals(other as IValue<T>);
+        }
+
+        public bool Equals(IOrdered<T> other)
+        {
+            return Equals(other as IValue<T>);
         }
     }
 

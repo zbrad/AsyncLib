@@ -12,7 +12,7 @@ namespace ZBrad.AsyncLib
         N PeekTail();
     }
 
-    public interface INodeQueueOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>
+    public interface INodeQueueOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>, IEquatable<N>
     {
         void Enqueue(N item);
         N Dequeue();
@@ -67,7 +67,7 @@ namespace ZBrad.AsyncLib
         Task InsertAfter(N cur, N node, CancellationToken token);
     }
 
-    public interface INodeListOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>
+    public interface INodeListOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>, IEquatable<N>
     {
         INode Head { get; }
         INode Tail { get; }
@@ -81,7 +81,7 @@ namespace ZBrad.AsyncLib
 
 
 
-    public interface IOrderedListAsync<N> : INodeCollectionAsync<N> where N : INodeComparable<N>,IComparable<N>
+    public interface IOrderedListAsync<N> : INodeCollectionAsync<N> where N : INodeComparable<N>,IComparable<N>, IEquatable<N>
     {
         INode Head { get; }
         INode Tail { get; }

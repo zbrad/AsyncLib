@@ -7,36 +7,66 @@ using U = System.Collections.Concurrent;
 
 namespace ZBrad.AsyncLib
 {
-    internal class WaitQueue<N> : INodeQueueAsync<N>, IWaitable where N : class, INode
+    internal class WaitQueue<N> : INodeQueueAsync<N>, IWaitable, IWaitQueue<N> where N : class, INode
     {
         AwaitLock locker = new AwaitLock();
         NodeQueue<N> queue = new NodeQueue<N>();
-
         bool isEnded = false;
-        public bool IsEnded { get { return isEnded; } }
+        static Task<N> Cancelled;
+        // we have to use list to allow cancel cleanup
+        NodeList<Waiter<N>> waiters = new NodeList<Waiter<N>>();
+        public int WaitCount { get { return waiters.Count; } }
+
+        static WaitQueue()
+        {
+            var tcs = new TaskCompletionSource<N>();
+            tcs.SetCanceled();
+            Cancelled = tcs.Task;
+        }
+
+        internal Task<AwaitLock.Releaser> GetAwait()
+        {
+            return locker.WaitAsync();
+        }
 
         public int Count { get { return queue.Count; } }
-        
+
         int INodeCollectionAsync<N>.Version { get { return queue.Version; } }
 
         INode INodeCollectionAsync<N>.Root { get { return queue.Root; } }
 
-        public void Completed()
-        {
-            isEnded = true;
-        }
-
-        public async Task<bool> IsCompleteAsync()
+        public async Task EndEnqueue()
         {
             using (await locker.WaitAsync())
             {
-                if (isEnded && queue.Count == 0)
-                    return true;
-                return false;
+                isEnded = true;
             }
         }
 
-        public async Task<bool> IsEmptyAsync()
+        public async Task<bool> IsEnded()
+        {
+            using (await locker.WaitAsync())
+            {
+                return isEnded;
+            }
+        }
+
+        public async Task<bool> IsComplete()
+        {
+            using (await locker.WaitAsync())
+            {
+                return isComplete();
+            }
+        }
+
+        bool isComplete()
+        {
+            if (isEnded && queue.Count == 0)
+                return true;
+            return false;
+        }
+
+        public async Task<bool> IsEmpty()
         {
             using (await locker.WaitAsync())
             {
@@ -44,36 +74,99 @@ namespace ZBrad.AsyncLib
             }
         }
 
-        public async Task Enqueue(N item)
+        public Task Enqueue(N item)
         {
-            using (await locker.WaitAsync())
-            {
-                queue.Enqueue(item);
-            }
+            return enqueue(item, CancellationToken.None);
         }
 
-        public async Task Enqueue(N item, CancellationToken token)
+        public Task Enqueue(N item, CancellationToken token)
+        {
+            if (token.IsCancellationRequested)
+                return Cancelled;
+            return enqueue(item, token);
+        }
+
+        async Task enqueue(N item, CancellationToken token)
         {
             using (await locker.WaitAsync(token))
             {
+                if (token.IsCancellationRequested)
+                    token.ThrowIfCancellationRequested();
+
+                // are we done adding?
+                if (isEnded)
+                    return;
+
+                if (queue.Count == 0 && waiters.Count > 0)
+                {
+                    // if only item, and already waiters, then just give first waiter this item
+                    var w = waiters.RemoveFromHead();
+                    w.Completed(item);
+                    return;
+                }
+
                 queue.Enqueue(item);
+
+                if (waiters.Count > 0)
+                {
+                    // get first waiter and first item
+                    var w = waiters.RemoveFromHead();
+                    var first = queue.Dequeue();
+                    w.Completed(first);
+                }
             }
         }
 
-        public async Task<N> Dequeue()
+        public Task<N> Dequeue()
         {
-            using (await locker.WaitAsync())
-            {
-                return queue.Dequeue();
-            }
+            return dequeue(CancellationToken.None);
         }
 
-        public async Task<N> Dequeue(CancellationToken token)
+        public Task<N> Dequeue(CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return Cancelled;
+
+            return dequeue(token);
+        }
+            
+        async Task<N> dequeue(CancellationToken token)
+        {
+            Waiter<N> waiter = null;
+
             using (await locker.WaitAsync(token))
             {
-                return queue.Dequeue();
+                if (isComplete())
+                    return null;
+
+                if (queue.Count > 0)
+                    return queue.Dequeue();
+
+                waiter = new Waiter<N>(token);
+                if (token != CancellationToken.None)
+                    waiter.OnCancel += Waiter_OnCancel;
+
+                waiters.InsertAtTail(waiter);
             }
+
+            N item = await waiter;
+            if (token.IsCancellationRequested)
+                token.ThrowIfCancellationRequested();
+
+            return item;
+        }
+
+        private void Waiter_OnCancel(Waiter<N> w)
+        {
+            Task.Run(async () =>
+            {
+                using (await locker.WaitAsync())
+                {
+                    waiters.Remove(w);
+                }
+
+                w.Completed(null);
+            });
         }
 
         public N PeekHead()
@@ -88,16 +181,27 @@ namespace ZBrad.AsyncLib
 
         public Task CopyTo(N[] array, int arrayIndex)
         {
-            return CopyTo(array, arrayIndex, CancellationToken.None);
+            return copyTo(array, arrayIndex, CancellationToken.None);
         }
 
-        public async Task CopyTo(N[] array, int arrayIndex, CancellationToken token)
+        public Task CopyTo(N[] array, int arrayIndex, CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return Cancelled;
+
+            return copyTo(array, arrayIndex, token);
+        }
+
+        async Task copyTo(N[] array, int arrayIndex, CancellationToken token)
+        { 
             int i = 0;
             var iter = this.GetAsyncEnumerator();
 
             while (await iter.MoveNext())
             {
+                if (token.IsCancellationRequested)
+                    token.ThrowIfCancellationRequested();
+
                 array[arrayIndex + i] = iter.Current;
                 i++;
             }

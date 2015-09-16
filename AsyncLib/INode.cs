@@ -19,7 +19,7 @@ namespace ZBrad.AsyncLib
 
     //}
 
-    public interface INodeComparable<N> : INode, IComparable<INodeComparable<N>> where N : IComparable<N>
+    public interface INodeComparable<N> : INode, IComparable<INodeComparable<N>> where N : IComparable<N>, IEquatable<N>
     {
 
     }

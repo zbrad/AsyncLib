@@ -38,20 +38,20 @@ namespace ZBrad.AsyncLib
         }
 
         BinarySemaphore sem = new BinarySemaphore();
-        Releaser releaser;
-        static Releaser cancelledReleaser;
+        Task<Releaser> releaser;
+        static Task<Releaser> cancelledReleaser;
 
         public AwaitLock()
         {
-            this.releaser = new Releaser(this);
+            this.releaser = Task.FromResult<Releaser>(new Releaser(this));
         }
 
         static AwaitLock()
         {
-            cancelledReleaser = new Releaser(null);
+            cancelledReleaser = Task.FromResult<Releaser>(new Releaser(null));
         }
 
-        public async Task<Releaser> WaitAsync(CancellationToken token)
+        public Task<Releaser> WaitAsync(CancellationToken token)
         {
             Task<bool> t = sem.WaitAsync(token);
             if (t.IsCompleted)
@@ -61,8 +61,28 @@ namespace ZBrad.AsyncLib
                 return cancelledReleaser;
             }
 
-            Task<Releaser> r = t.ContinueWith<Releaser>(lockComplete, this, token, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
-            return await r;
+            var r = t.ContinueWith<Releaser>(lockComplete, this, token, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+            return continueWait(r, token);
+        }
+
+        async Task<Releaser> continueWait(Task<Releaser> t, CancellationToken token)
+        {
+            try
+            {
+                var releaser = await t;
+                if (token.IsCancellationRequested)
+                    token.ThrowIfCancellationRequested();
+
+                return releaser;
+            }
+            catch (TaskCanceledException e)
+            {
+                throw new OperationCanceledException("await was cancelled", e, token);
+            }
+            catch (Exception e)
+            {
+                throw e;
+            }
         }
 
         Releaser lockComplete(Task<bool> t, object o)

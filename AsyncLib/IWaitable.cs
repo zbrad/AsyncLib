@@ -4,10 +4,10 @@ namespace ZBrad.AsyncLib
 {
     public interface IWaitable
     {
-        bool IsEnded { get; }
-        Task<bool> IsEmptyAsync();
-        Task<bool> IsCompleteAsync();
+        Task<bool> IsEnded();
+        Task<bool> IsEmpty();
+        Task<bool> IsComplete();
 
-        void Completed();
+        Task EndEnqueue();
     }
 }

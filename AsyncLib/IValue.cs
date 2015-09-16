@@ -8,7 +8,7 @@ namespace ZBrad.AsyncLib
         T Item { get; set; }
     }
 
-    public interface IOrdered<T> : IComparable<IValue<T>>, IEquatable<IValue<T>>, IValue<T>, INodeComparable<T>, INodeComparable<IOrdered<T>> where T : IComparable<T>, IEquatable<T>
+    public interface IOrdered<T> : IComparable<IValue<T>>, IEquatable<IValue<T>>, IValue<T>, INodeComparable<T>, INodeComparable<IOrdered<T>>, IEquatable<IOrdered<T>> where T : IComparable<T>, IEquatable<T>
     {
 
     }

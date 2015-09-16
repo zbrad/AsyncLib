@@ -55,13 +55,17 @@
   <ItemGroup>
     <Compile Include="AssertEx.cs" />
     <Compile Include="AsyncSemaphoreUnitTests.cs" />
+    <Compile Include="ItemNode.cs" />
     <Compile Include="NodeQueueOrderedTests.cs" />
     <Compile Include="NodeQueueComparableTests.cs" />
     <Compile Include="NodeQueueTests.cs" />
+    <Compile Include="ListTest.cs" />
+    <Compile Include="QueueTest.cs" />
     <Compile Include="TaskShim.cs" />
     <Compile Include="TestAsync.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="NodeListTests.cs" />
+    <Compile Include="WaitQueueTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <WCFMetadata Include="Service References\" />

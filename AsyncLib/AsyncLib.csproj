@@ -46,6 +46,7 @@
     <Compile Include="INode.cs" />
     <Compile Include="IQueue.cs" />
     <Compile Include="IValue.cs" />
+    <Compile Include="IWaitQueue.cs" />
     <Compile Include="NodeCollection.cs" />
     <Compile Include="NodeList.cs" />
     <Compile Include="NodesEnum.cs" />
@@ -53,6 +54,7 @@
     <Compile Include="NodeListOrdered.cs" />
     <Compile Include="NodeQueueOrdered.cs" />
     <Compile Include="Ordered.cs" />
+    <Compile Include="TaskEx.cs" />
     <Compile Include="Value.cs" />
     <Compile Include="QueueOrdered.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

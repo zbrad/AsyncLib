@@ -4,7 +4,7 @@ using System;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodeQueueOrdered<N> : INodeQueueOrdered<N> where N : class, INodeComparable<N>
+    internal class NodeQueueOrdered<N> : INodeQueueOrdered<N> where N : class, INodeComparable<N>, IEquatable<N>
     {
         NodeListOrdered<N> nodes = new NodeListOrdered<N>();
 
