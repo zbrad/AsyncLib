@@ -3,11 +3,13 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
 [assembly: InternalsVisibleTo("Tests")]
-[assembly: AssemblyTitle("ZBrad's Async Library")]
+[assembly: AssemblyTitle("ZBrad's Async Collections Library")]
+[assembly: AssemblyDescription(@"Async aware collection classes.
+      Currently supports list, queue, ordered list, ordered queue, and wait queue (a blocking queue).")]
 [assembly: AssemblyConfiguration("")]
-[assembly: AssemblyCompany("zbrad")]
-[assembly: AssemblyProduct("AsyncLib")]
-[assembly: AssemblyCopyright("Brad Merrill 2015")]
+[assembly: AssemblyCompany("Brad Merrill")]
+[assembly: AssemblyProduct("ZBrad.AsyncLib")]
+[assembly: AssemblyCopyright("Copyright Brad Merrill © 2015")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
 
@@ -29,5 +31,6 @@ using System.Runtime.InteropServices;
 // You can specify all the values or you can default the Build and Revision Numbers 
 // by using the '*' as shown below:
 // [assembly: AssemblyVersion("1.0.*")]
+[assembly: AssemblyInformationalVersion("1.0.0")]
 [assembly: AssemblyVersion("1.0.0.0")]
 [assembly: AssemblyFileVersion("1.0.0.0")]

@@ -1,37 +1,10 @@
-﻿using G = System.Collections.Generic;
-using System;
-using System.Threading.Tasks;
+﻿using System;
 using System.Threading;
+using System.Threading.Tasks;
+
 namespace ZBrad.AsyncLib
 {
-    public interface INodeQueue<N> : INodeCollection<N> where N : INode
-    {
-        void Enqueue(N item);
-        N Dequeue();
-        N PeekHead();
-        N PeekTail();
-    }
-
-    public interface INodeQueueOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>, IEquatable<N>
-    {
-        void Enqueue(N item);
-        N Dequeue();
-        N PeekHead();
-        N PeekTail();
-    }
-    public interface INodeQueueAsync<N> : INodeCollectionAsync<N> where N : INode
-    {
-        Task Enqueue(N item);
-        Task Enqueue(N item, CancellationToken token);
-
-        Task<N> Dequeue();
-        Task<N> Dequeue(CancellationToken token);
-
-        N PeekHead();
-        N PeekTail();
-    }
-
-    public interface INodeList<N> : INodeCollection<N> where N : INode
+    public interface IList<N> : INodeCollection<N> where N : INode
     {
         INode Head { get; }
         INode Tail { get; }
@@ -44,10 +17,10 @@ namespace ZBrad.AsyncLib
         void InsertAfter(N cur, N node);
     }
 
-    public interface INodeListAsync<N> : INodeCollectionAsync<N> where N : INode
+    public interface IListAsync<N> : INodeCollectionAsync<N> where N : INode
     {
-        INode Head { get; }
-        INode Tail { get; }
+        Task<INode> Head { get; }
+        Task<INode> Tail { get; }
         Task InsertAtHead(N node);
         Task InsertAtTail(N node);
         Task<N> RemoveFromHead();
@@ -81,7 +54,7 @@ namespace ZBrad.AsyncLib
 
 
 
-    public interface IOrderedListAsync<N> : INodeCollectionAsync<N> where N : INodeComparable<N>,IComparable<N>, IEquatable<N>
+    public interface IOrderedListAsync<N> : INodeCollectionAsync<N> where N : INodeComparable<N>, IComparable<N>, IEquatable<N>
     {
         INode Head { get; }
         INode Tail { get; }
@@ -101,4 +74,5 @@ namespace ZBrad.AsyncLib
         Task<N> RemoveFromTail(CancellationToken token);
         Task Remove(N node, CancellationToken token);
     }
+
 }

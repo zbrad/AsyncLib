@@ -1,28 +1,26 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>ZBrad.AsyncLib</id>
-    <version>1.0.0-beta</version>
-    <title>ZBrad's Async Library</title>
-    <authors>zbrad</authors>
-    <owners>zbrad</owners>
+    <id>$id$</id>
+    <version>$version$-beta</version>
+    <title>$title$</title>
+    <authors>$author$</authors>
+    <owners>$author$</owners>
+    <copyright>$copyright$</copyright>
     <licenseUrl>https://github.com/zbrad/AsyncLib/LICENSE</licenseUrl>
     <projectUrl>https://github.com/zbrad/AsyncLib</projectUrl>
-    <iconUrl>https://github.com/zbrad/AsyncLib/AsyncLib/Async.png</iconUrl>
+    <iconUrl>https://github.com/zbrad/AsyncLib/ZBrad.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
-    <summary>
-      Async enabled collections for list, queue, ordered list, ordered queue.
-    </summary>
-    <description>
-      Async enabled collections for list, queue, ordered list, ordered queue.
-      All collections are blocking, eg if the queue is empty,
-      the task will block until an entry is added, or queue is completed.
-    </description>
+    <summary>$title$</summary>
+    <description>$description$</description>
     <releaseNotes></releaseNotes>
-    <copyright>Brad Merrill 2015</copyright>
     <tags>async collections</tags>
   </metadata>
+  <!--
   <files>
     <file src="*.dll" target="lib\net45" />
   </files>
+  -->
 </package>
+
+

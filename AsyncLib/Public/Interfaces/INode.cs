@@ -14,11 +14,6 @@ namespace ZBrad.AsyncLib
         INode Next { get; set; }
     }
 
-    //public interface INodeC<N> : INode, IComparable<INodeC<N>> where N : IComparable<N>
-    //{
-
-    //}
-
     public interface INodeComparable<N> : INode, IComparable<INodeComparable<N>> where N : IComparable<N>, IEquatable<N>
     {
 
@@ -31,14 +26,14 @@ namespace ZBrad.AsyncLib
 
     public interface INodeEnumerableAsync<N> where N : INode
     {
-        INodeEnumeratorAsync<N> GetAsyncEnumerator();
+        INodeEnumeratorAsync<N> GetEnumeratorAsync();
     }
 
     public interface INodeEnumeratorAsync<N> where N : INode
     {
         N Current { get; }
-        Task<bool> MoveNext();
-        Task Reset();
+        Task<bool> MoveNextAsync();
+        Task ResetAsync();
     }
 
     public interface INodeCollection<N> : INodeEnumerable<N> where N : INode
@@ -52,9 +47,10 @@ namespace ZBrad.AsyncLib
     public interface INodeCollectionAsync<N> : INodeEnumerableAsync<N> where N : INode
     {
         int Version { get; }
-        INode Root { get; }
-        int Count { get; }
-        Task CopyTo(N[] array, int arrayIndex);
-        Task CopyTo(N[] array, int arrayIndex, CancellationToken token);
+        AwaitLock Locker { get; }
+        Task<INode> GetRootAsync(int version);
+        Task<int> CountAsync { get; }
+        Task CopyToAsync(N[] array, int arrayIndex);
+        Task CopyToAsync(N[] array, int arrayIndex, CancellationToken token);
     }
 }

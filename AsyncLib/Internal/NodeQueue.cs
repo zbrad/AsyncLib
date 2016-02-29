@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodeQueue<N> : INodeQueue<N> where N : class, INode
+    internal class NodeQueue<N> : IQueue<N> where N : class, INode
     {
         NodeList<N> nodes = new NodeList<N>();
 

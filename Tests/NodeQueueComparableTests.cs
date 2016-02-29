@@ -39,9 +39,9 @@ namespace Tests
             }
         }
 
-        QueueTest<ItemNode<int>> getTest()
+        NodeQueueOrderedTest<ItemNode<int>> getTest()
         {
-            return new QueueTest<ItemNode<int>>(5,
+            return new NodeQueueOrderedTest<ItemNode<int>>(5,
                 (i) => new ItemNode<int> { Item = i },
                 (t) => new ItemNode<int> { Item = t.Item });
         }

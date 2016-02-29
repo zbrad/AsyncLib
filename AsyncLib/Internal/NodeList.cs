@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodeList<N> : NodeCollection<N>, INodeList<N> where N : class, INode
+    internal class NodeList<N> : NodeCollection<N>, IList<N> where N : class, INode
     {
         public virtual void InsertAtTail(N node)
         {

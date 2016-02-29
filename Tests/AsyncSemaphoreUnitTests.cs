@@ -41,10 +41,12 @@ namespace Tests
             var token = new CancellationToken(true);
             var task0 = semaphore.WaitAsync(token);
 
-            Assert.IsFalse(task0.Result); // wait async failed
+            // should throw an exception
+            AssertEx.ThrowsException<AggregateException>(() => { var result = task0.Result; });
+
             Assert.AreEqual<int>(0, semaphore.WaitCount);
             Assert.IsTrue(task0.IsCompleted);
-            Assert.IsFalse(task0.IsCanceled);
+            Assert.IsTrue(task0.IsCanceled);
             Assert.IsFalse(task0.IsFaulted);
         }
 

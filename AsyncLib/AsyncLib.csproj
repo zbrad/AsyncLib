@@ -41,36 +41,40 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BinarySemaphore.cs" />
-    <Compile Include="IWaitable.cs" />
-    <Compile Include="INode.cs" />
-    <Compile Include="IQueue.cs" />
-    <Compile Include="IValue.cs" />
-    <Compile Include="IWaitQueue.cs" />
-    <Compile Include="NodeCollection.cs" />
-    <Compile Include="NodeList.cs" />
-    <Compile Include="NodesEnum.cs" />
-    <Compile Include="NodesEnumAsync.cs" />
-    <Compile Include="NodeListOrdered.cs" />
-    <Compile Include="NodeQueueOrdered.cs" />
-    <Compile Include="Ordered.cs" />
-    <Compile Include="TaskEx.cs" />
-    <Compile Include="Value.cs" />
-    <Compile Include="QueueOrdered.cs" />
+    <Compile Include="Public\Classes\WaitList.cs" />
+    <Compile Include="Public\Interfaces\IList.cs" />
+    <Compile Include="Public\Classes\BinarySemaphore.cs" />
+    <Compile Include="Public\Interfaces\IWaitable.cs" />
+    <Compile Include="Public\Interfaces\INode.cs" />
+    <Compile Include="Public\Interfaces\IQueue.cs" />
+    <Compile Include="Internal\IValue.cs" />
+    <Compile Include="Internal\NodeCollection.cs" />
+    <Compile Include="Internal\NodeList.cs" />
+    <Compile Include="Internal\NodesEnum.cs" />
+    <Compile Include="Internal\NodesEnumAsync.cs" />
+    <Compile Include="Internal\NodeListOrdered.cs" />
+    <Compile Include="Internal\NodeQueueOrdered.cs" />
+    <Compile Include="Internal\Ordered.cs" />
+    <Compile Include="Public\Classes\Queue.cs" />
+    <Compile Include="Public\Classes\TaskEx.cs" />
+    <Compile Include="Internal\Value.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ValueList.cs" />
-    <Compile Include="NodeQueue.cs" />
-    <Compile Include="AwaitLock.cs" />
-    <Compile Include="ValueQueue.cs" />
-    <Compile Include="Waiter.cs" />
-    <Compile Include="WaitQueue.cs" />
+    <Compile Include="Internal\ValueList.cs" />
+    <Compile Include="Internal\NodeQueue.cs" />
+    <Compile Include="Public\Classes\AwaitLock.cs" />
+    <Compile Include="Public\Classes\Waiter.cs" />
+    <Compile Include="Public\Classes\WaitQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="AsyncLib.nuspec" />
+    <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
+    <!--
     <PostBuildEvent>"$(SolutionDir).nuget\nuget" pack "$(ProjectDir)AsyncLib.nuspec" -verbosity detailed -OutputDirectory "$(TargetDir)." -BasePath "$(TargetDir)."</PostBuildEvent>
+    -->
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
@@ -79,4 +83,19 @@
   <Target Name="AfterBuild">
   </Target>
   -->
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <NuFile Include="$(SolutionDir)\packages\**\nuget.exe" />
+    </ItemGroup>
+    <PropertyGroup>
+      <NuGet>%(NuFile.FullPath)</NuGet>
+    </PropertyGroup>
+    <Message Text="test path $(NuGet)" />
+    <Exec Command="&quot;$(NuGet)&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(TargetDir).&quot; -BasePath &quot;$(TargetDir).&quot;" LogStandardErrorAsError="true" />
+    <ItemGroup>
+      <Packages Include="$(TargetDir)$(TargetName)*.nupkg" />
+    </ItemGroup>
+    <Message Text="packages: @(Packages)" />
+    <Copy SourceFiles="@(Packages)" DestinationFolder="c:\LocalNuGet" Condition="Exists('c:\LocalNuGet')" />
+  </Target>
 </Project>
