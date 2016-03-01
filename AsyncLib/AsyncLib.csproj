@@ -57,9 +57,7 @@
     <Compile Include="Internal\Ordered.cs" />
     <Compile Include="Public\Classes\Queue.cs" />
     <Compile Include="Public\Classes\TaskEx.cs" />
-    <Compile Include="Internal\Value.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Internal\ValueList.cs" />
     <Compile Include="Internal\NodeQueue.cs" />
     <Compile Include="Public\Classes\AwaitLock.cs" />
     <Compile Include="Public\Classes\Waiter.cs" />

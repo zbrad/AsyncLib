@@ -6,7 +6,7 @@ using ZBrad.AsyncLib;
 namespace Tests
 {
     [ExcludeFromCodeCoverage]
-    internal class ListTest<T> where T : class, IEquatable<T>, INode, new()
+    internal class ListTest<T> where T : INode, IEquatable<T>, IComparable<T>
     {
         T[] values;
         public T[] Values { get { return values; } }

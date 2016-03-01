@@ -8,19 +8,21 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodesEnum<N> : G.IEnumerator<N> where N : INode
+    internal class NodesEnum<N> : G.IEnumerator<N> where N : INode, IEquatable<N>
     {
         INodeCollection<N> nodes;
-        int version;
+        long version;
+        INode root;
         INode cur;
         bool isInit = false;
 
         public N Current { get { return (N)cur; } }
-
         public NodesEnum(INodeCollection<N> nodes)
         {
             this.nodes = nodes;
+            this.root = nodes.Root;
             this.version = nodes.Version;
+            this.cur = null;
             this.Reset();
         }
 
@@ -29,15 +31,19 @@ namespace ZBrad.AsyncLib
             if (version != nodes.Version)
                 throw new InvalidOperationException("collection modified");
 
-            if (isInit)
+            if (root == null)
+                return false;
+
+            if (cur == null)
             {
-                if (cur == nodes.Root)
-                    return false;
-                return (cur = cur.Next) != nodes.Root;
+                cur = root;
+                return true;
             }
 
-            this.isInit = true;
-            this.cur = nodes.Root;
+            if (cur.Next == root)
+                return false;
+
+            cur = cur.Next;
             return true;
         }
 
@@ -46,15 +52,17 @@ namespace ZBrad.AsyncLib
             if (version != nodes.Version)
                 throw new InvalidOperationException("collection modified");
 
-            this.isInit = false;
+            this.cur = null;
         }
 
         #region explicit interface implementations
 
-        object C.IEnumerator.Current { get { return this.Current; } }
+        object C.IEnumerator.Current { get { throw new NotImplementedException("use typed Current property"); } }
 
         void IDisposable.Dispose()
         {
+            this.nodes = null;
+            this.cur = null;
         }
 
         #endregion

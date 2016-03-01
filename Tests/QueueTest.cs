@@ -6,7 +6,7 @@ using ZBrad.AsyncLib;
 namespace Tests
 {
     [ExcludeFromCodeCoverage]
-    internal class NodeQueueOrderedTest<T> where T : class, INodeComparable<T>, IEquatable<T>, new()
+    internal class NodeQueueOrderedTest<T> where T : INode, IComparable<T>, IEquatable<T>, new()
     {
         T[] values;
         public T[] Values { get { return values; } }

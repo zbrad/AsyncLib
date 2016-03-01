@@ -4,43 +4,56 @@ using G = System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodesEnumAsync<N> : INodeEnumeratorAsync<N> where N : class, INode
+    internal class NodesEnumAsync<N> : IAsyncEnumerator<N> where N : INode, IEquatable<N>
     {
-        static readonly Task<bool> False = Task.FromResult<bool>(false);
-        static readonly Task<bool> True = Task.FromResult<bool>(true);
-
         INodeCollectionAsync<N> nodes;
-        int version;
-        INode cur;
-
-        public N Current { get { return cur as N; } }
+        NodesEnum<N> nodesEnum;
 
         public NodesEnumAsync(INodeCollectionAsync<N> nodes)
         {
             this.nodes = nodes;
-            this.version = nodes.Version;
-            this.ResetAsync().Wait();
+            this.nodesEnum = new NodesEnum<N>(nodes);
         }
 
-        public async Task<bool> MoveNextAsync()
+        public N Current { get { return nodesEnum.Current; } }
+
+        public Task<bool> MoveNextAsync()
         {
-            using (await nodes.Locker.WaitAsync())
+            return this.MoveNextAsync(CancellationToken.None);
+        }
+
+        public async Task<bool> MoveNextAsync(CancellationToken token)
+        {
+            using (await nodes.Locker.WaitAsync(token))
             {
-                if (version != nodes.Version)
-                    throw new InvalidOperationException("collection modified");
-                cur = cur.Next;
+                return nodesEnum.MoveNext();
             }
-
-            return cur != null;
         }
 
-        public async Task ResetAsync()
+        public void Reset()
         {
-            this.cur = await nodes.GetRootAsync(this.version);
+            nodesEnum.Reset();
         }
+
+        #region explicit interface implementations
+
+        bool C.IEnumerator.MoveNext() { throw new NotImplementedException("use MoveNextAsync for async structure"); }
+
+        object C.IEnumerator.Current { get { throw new NotImplementedException("use typed Current property");  } }
+
+        void IDisposable.Dispose()
+        {
+            nodes = null;
+            if (nodesEnum != null)
+                ((IDisposable)nodesEnum).Dispose();
+            nodesEnum = null;
+        }
+
+        #endregion
     }
 
 }

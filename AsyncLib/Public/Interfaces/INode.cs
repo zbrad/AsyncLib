@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
-using System.Text;
-using System.Threading;
+﻿using System.Threading;
 using System.Threading.Tasks;
 using G = System.Collections.Generic;
-using C = System.Collections;
+using S = System;
 
 namespace ZBrad.AsyncLib
 {
@@ -14,43 +11,50 @@ namespace ZBrad.AsyncLib
         INode Next { get; set; }
     }
 
-    public interface INodeComparable<N> : INode, IComparable<INodeComparable<N>> where N : IComparable<N>, IEquatable<N>
-    {
+    //public interface INodeComparable<N> : INode, S.IComparable<INodeComparable<N>> where N : S.IComparable<N>, S.IEquatable<N>
+    //{
 
-    }
+    //}
 
     public interface INodeEnumerable<N> : G.IEnumerable<N> where N : INode
     {
 
     }
 
-    public interface INodeEnumerableAsync<N> where N : INode
+    public interface IAsyncEnumerable<N> : INodeEnumerable<N> where N : INode
     {
-        INodeEnumeratorAsync<N> GetEnumeratorAsync();
+        IAsyncEnumerator<N> GetAsyncEnumerator();
     }
 
-    public interface INodeEnumeratorAsync<N> where N : INode
+    public interface IAsyncEnumerator<N> : G.IEnumerator<N> where N : INode
     {
-        N Current { get; }
         Task<bool> MoveNextAsync();
-        Task ResetAsync();
+        Task<bool> MoveNextAsync(CancellationToken token);
     }
 
-    public interface INodeCollection<N> : INodeEnumerable<N> where N : INode
+    public interface INodeCollection<N> : INodeEnumerable<N>, G.ICollection<N> where N : INode, S.IEquatable<N>
     {
-        int Version { get; }
+        long Version { get; }
         INode Root { get; }
-        int Count { get; }
-        void CopyTo(N[] array, int arrayIndex);
     }
 
-    public interface INodeCollectionAsync<N> : INodeEnumerableAsync<N> where N : INode
+    public interface INodeCollectionAsync<N> : IAsyncEnumerable<N>, INodeCollection<N> where N : INode, S.IEquatable<N>
     {
-        int Version { get; }
         AwaitLock Locker { get; }
-        Task<INode> GetRootAsync(int version);
-        Task<int> CountAsync { get; }
-        Task CopyToAsync(N[] array, int arrayIndex);
-        Task CopyToAsync(N[] array, int arrayIndex, CancellationToken token);
+
+        Task<bool> AddAsync(N item);
+        Task<bool> AddAsync(N item, CancellationToken token);
+
+        Task<bool> RemoveAsync(N item);
+        Task<bool> RemoveAsync(N item, CancellationToken token);
+
+        Task<bool> ClearAsync();
+        Task<bool> ClearAsync(CancellationToken token);
+
+        Task<bool> ContainsAsync(N item);
+        Task<bool> ContainsAsync(N item, CancellationToken token);
+
+        Task<bool> CopyToAsync(N[] array, int arrayIndex);
+        Task<bool> CopyToAsync(N[] array, int arrayIndex, CancellationToken token);
     }
 }

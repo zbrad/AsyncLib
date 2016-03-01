@@ -1,21 +1,21 @@
 ﻿using C = System.Collections;
 using G = System.Collections.Generic;
-using System;
+using S = System;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodeListOrdered<N> : INodeListOrdered<N> where N : class, INodeComparable<N>, IEquatable<N>
+    internal class NodeListOrdered<N> : INodeListOrdered<N> where N : INode, S.IEquatable<N>, S.IComparable<N>
     {
         NodeList<N> nodes = new NodeList<N>();
 
         public int Count { get { return nodes.Count; } }
         public INode Root { get { return nodes.Head; } }
-
         public INode Head { get { return nodes.Head; } }
-
         public INode Tail { get { return nodes.Tail; } }
+        public long Version { get { return nodes.Version; } }
 
-        public int Version { get { return nodes.Version; } }
+        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+
 
         public void CopyTo(N[] array, int arrayIndex)
         {
@@ -32,66 +32,68 @@ namespace ZBrad.AsyncLib
             return this.GetEnumerator();
         }
 
-        public void InsertFrom(N position, N newnode)
+        public bool InsertFrom(N position, N newnode)
         {
             if (position == null || newnode == null)
-                return;
+                return false;
 
             if (newnode.Prev != null || newnode.Next != null)
-                return;
+                return false;
 
             if (nodes.Count == 0)
             {
                 nodes.InsertAtHead(newnode);
-                return;
+                return true;
             }
 
             if (newnode.CompareTo(position) >= 0)
                 insertGreater(position, newnode);
             else
                 insertLesser(position, newnode);
+
+            return true;
         }
 
-        public void InsertFromHead(N newnode)
+        public bool InsertFromHead(N newnode)
         {
             if (newnode == null)
-                return;
+                return false;
 
             if (newnode.Prev != null || newnode.Next != null)
-                return;
+                return false;
 
             if (nodes.Count == 0)
             {
                 nodes.InsertAtHead(newnode);
-                return;
+                return true;
             }
 
-            InsertFrom((N)this.Head, newnode);
+            return InsertFrom((N) this.Head, newnode);
         }
 
-        public void InsertFromTail(N newnode)
+        public bool InsertFromTail(N newnode)
         {
             if (newnode == null)
-                return;
+                return false;
 
             if (newnode.Prev != null || newnode.Next != null)
-                return;
+                return false;
 
             if (nodes.Count == 0)
             {
                 nodes.InsertAtHead(newnode);
-                return;
+                return false;
             }
 
-            InsertFrom((N)this.Tail, newnode);
+            return InsertFrom((N) this.Tail, newnode);
         }
 
-        public void Remove(N node)
+        public bool Remove(N node)
         {
             if (node == null)
-                return;
+                return false;
 
-            nodes.Remove(node);
+            return nodes.Remove(node);
         }
 
         public N RemoveFromHead()
@@ -121,6 +123,21 @@ namespace ZBrad.AsyncLib
         }
 
         #endregion
+
+        public void Add(N item)
+        {
+            this.InsertFromTail(item);
+        }
+
+        public void Clear()
+        {
+            nodes.Clear();
+        }
+
+        public bool Contains(N item)
+        {
+            return nodes.Contains(item);
+        }
     }
 
 }

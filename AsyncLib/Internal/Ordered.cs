@@ -1,12 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using S = System;
+using G = System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib
 {
-    internal class Ordered<T> : IOrdered<T>, INodeComparable<Ordered<T>>, IEquatable<Ordered<T>> where T : IComparable<T>, IEquatable<T>
+    internal interface IOrdered<T> : INode, S.IComparable<IOrdered<T>>, S.IEquatable<IOrdered<T>> where T : S.IComparable<T>, S.IEquatable<T>
+    {
+        T Item { get; set; }
+    }
+
+    internal class Ordered<T> : IOrdered<T> where T : S.IComparable<T>, S.IEquatable<T>
     {
         public T Item { get; set; }
         public INode Prev { get; set; }
@@ -16,66 +21,14 @@ namespace ZBrad.AsyncLib
             this.Item = item;
         }
 
-        public int CompareTo(IValue<T> other)
+        public int CompareTo(IOrdered<T> other)
         {
-            if (other == null)
-                return -1;
-
-            return Item.CompareTo(other.Item);
-        }
-
-        public int CompareTo(INodeComparable<T> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as IValue<T>);
-        }
-
-        public int CompareTo(INodeComparable<IOrdered<T>> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as IValue<T>);
-        }
-
-        public int CompareTo(INodeComparable<Ordered<T>> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as IValue<T>);
-        }
-
-        public bool Equals(IValue<T> other)
-        {
-            if (other == null)
-                return false;
-
-            return Item.Equals(other.Item);
-        }
-
-        public override bool Equals(object obj)
-        {
-            return Equals(obj as IValue<T>);
-        }
-
-        public override int GetHashCode()
-        {
-            return Item.GetHashCode();
-        }
-
-        public bool Equals(Ordered<T> other)
-        {
-            return Equals(other as IValue<T>);
+            return this.Item.CompareTo(other.Item);
         }
 
         public bool Equals(IOrdered<T> other)
         {
-            return Equals(other as IValue<T>);
+            return this.Item.Equals(other.Item);
         }
     }
-
-
 }

@@ -8,19 +8,23 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal class NodeQueue<N> : IQueue<N> where N : class, INode
+    internal class NodeQueue<N> : IQueue<N> where N : INode, IEquatable<N>
     {
         NodeList<N> nodes = new NodeList<N>();
 
-        public int Version { get { return nodes.Version; } }
+        public long Version { get { return nodes.Version; } }
 
         public INode Root { get { return nodes.Root; } }
 
         public int Count { get { return nodes.Count; } }
 
-        public virtual void Enqueue(N node)
+        public bool IsReadOnly { get { return false; } }
+
+        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+
+        public virtual bool Enqueue(N node)
         {
-            nodes.InsertAtTail(node);
+            return nodes.InsertAtTail(node);
         }
 
         public virtual N Dequeue()
@@ -51,6 +55,26 @@ namespace ZBrad.AsyncLib
         C.IEnumerator C.IEnumerable.GetEnumerator()
         {
             return this.GetEnumerator();
+        }
+
+        public void Add(N item)
+        {
+            this.Enqueue(item);
+        }
+
+        public void Clear()
+        {
+            nodes.Clear();
+        }
+
+        public bool Contains(N item)
+        {
+            return nodes.Contains(item);
+        }
+
+        public bool Remove(N item)
+        {
+            return nodes.Remove(item);
         }
     }
 }

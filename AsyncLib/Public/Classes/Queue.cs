@@ -1,40 +1,37 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
+using C = System.Collections;
+using G = System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib.Public
 {
-    public class Queue<N> : IQueue<N> where N : class, INode
+    public class Queue<N> : IQueue<N> where N : INode, IEquatable<N>
     {
         WaitQueue<N> queue = new WaitQueue<N>();
 
-        public int Count { get { return queue.CountAsync.Result; } }
+        public int Count { get { return queue.Count; } }
 
-        public INode Root { get { return queue.GetRootAsync(queue.Version).Result; } }
+        public INode Root { get { return queue.Root; } }
 
-        public int Version { get { return queue.Version; } }
+        public long Version { get { return queue.Version; } }
 
         public void CopyTo(N[] array, int arrayIndex)
         {
             queue.CopyToAsync(array, arrayIndex).Wait();
         }
 
+        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+
         public N Dequeue()
         {
             return queue.DequeueAsync().Result;
         }
 
-        public void Enqueue(N item)
+        public bool Enqueue(N item)
         {
-            queue.EnqueueAsync(item).Wait();
-        }
-
-        public IEnumerator<N> GetEnumerator()
-        {
-            return new SynchronousEnumerator<N>(queue);
+            return queue.EnqueueAsync(item).Result;
         }
 
         public N PeekHead()
@@ -47,29 +44,57 @@ namespace ZBrad.AsyncLib.Public
             return queue.PeekTailAsync().Result;
         }
 
-        IEnumerator IEnumerable.GetEnumerator()
+        G.IEnumerator<N> G.IEnumerable<N>.GetEnumerator()
         {
-            return this.GetEnumerator();
+            return new SynchronousEnumerator<N>(queue.GetAsyncEnumerator());
         }
+
+        C.IEnumerator C.IEnumerable.GetEnumerator()
+        {
+            return ((G.IEnumerable<N>)this).GetEnumerator();
+        }
+
+        void G.ICollection<N>.Add(N item)
+        {
+            queue.AddAsync(item).Wait();
+        }
+
+        public void Clear()
+        {
+            queue.ClearAsync().Wait();
+        }
+
+        bool G.ICollection<N>.Contains(N item)
+        {
+            return queue.Contains(item);
+        }
+
+        bool G.ICollection<N>.Remove(N item)
+        {
+            return queue.RemoveAsync(item).Result;
+        }
+
     }
 
 
-    public class SynchronousEnumerator<N> : IEnumerator<N> where N : class, INode
+    public class SynchronousEnumerator<N> : G.IEnumerator<N> where N : INode, IEquatable<N>
     {
-        INodeEnumeratorAsync<N> asyncEnum;
+        IAsyncEnumerator<N> asyncEnum;
 
-        public SynchronousEnumerator(INodeEnumerableAsync<N> collection)
+        public SynchronousEnumerator(IAsyncEnumerator<N> asyncEnum)
         {
-            this.asyncEnum = collection.GetEnumeratorAsync();
+            this.asyncEnum = asyncEnum;
         }
 
         public N Current { get { return this.asyncEnum.Current; } }
 
-        object IEnumerator.Current { get { return this.Current; } }
+        object C.IEnumerator.Current { get { return this.Current; } }
 
         public void Dispose()
         {
-            // nothing to do
+            if (asyncEnum != null)
+                ((IDisposable)asyncEnum).Dispose();
+            asyncEnum = null;
         }
 
         public bool MoveNext()
@@ -79,7 +104,7 @@ namespace ZBrad.AsyncLib.Public
 
         public void Reset()
         {
-            this.asyncEnum.ResetAsync().Wait();
+            this.asyncEnum.Reset();
         }
     }
 }

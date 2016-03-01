@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ZBrad.AsyncLib;
 using System.Threading;
 using System.Diagnostics.CodeAnalysis;
-
+using G = System.Collections.Generic;
 namespace Tests
 {
     [ExcludeFromCodeCoverage]
@@ -51,7 +51,7 @@ namespace Tests
 
         ListTest<ItemNode<int>> getTest()
         {
-            return new ListTest<ItemNode<int>>(5,
+            return new ListTest<IOrdered<int>>(5,
                 (i) => new ItemNode<int> { Item = i },
                 (t) => new ItemNode<int> { Item = t.Item });
         }

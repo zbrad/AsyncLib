@@ -10,7 +10,7 @@ namespace Tests
     [TestClass]
     public class NodeQueueOrderedTests
     {
-        class NodeTest<T> where T : class, INodeComparable<T>, IEquatable<T>, IValue<int>, new()
+        class NodeTest<T> where T : INode, IEquatable<T>, IComparable<T>, new()
         {
             T[] values;
             public T[] Values { get { return values; } }

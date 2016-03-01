@@ -1,4 +1,4 @@
-﻿using System;
+﻿using S = System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,8 +8,7 @@ using System.Threading;
 
 namespace Tests
 {
-    // IValue<T>, IEquatable<ItemNode<T>>, IComparable<ItemNode<T>>, INodeComparable<ItemNode<T>>
-    internal class ItemNode<T> : IOrdered<T>, INodeComparable<ItemNode<T>>, IEquatable<ItemNode<T>> where T : IComparable<T>, IEquatable<T>
+    internal class ItemNode<T> : IOrdered<T>, S.IEquatable<ItemNode<T>>, S.IComparable<ItemNode<T>> where T : S.IComparable<T>, S.IEquatable<T>
     {
         static int sequence;
         public int Id = Interlocked.Increment(ref sequence);
@@ -17,67 +16,24 @@ namespace Tests
         public INode Next { get; set; }
         public INode Prev { get; set; }
 
-        public int CompareTo(INodeComparable<T> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as ItemNode<T>);
-        }
-
-        public int CompareTo(INodeComparable<IOrdered<T>> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as ItemNode<T>);
-        }
-
-        public int CompareTo(IValue<T> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as ItemNode<T>);
-        }
-
-        public int CompareTo(INodeComparable<ItemNode<T>> other)
-        {
-            if (other == null)
-                return -1;
-
-            return CompareTo(other as ItemNode<T>);
-        }
-
         public int CompareTo(ItemNode<T> other)
         {
-            if (other == null)
-                return -1;
-
-            return Item.CompareTo(other.Item);
+            throw new S.NotImplementedException();
         }
 
-        public bool Equals(IValue<T> other)
+        public int CompareTo(IOrdered<T> other)
         {
-            return Item.Equals(other.Item);
-        }
-
-        public bool Equals(IOrdered<T> other)
-        {
-            return Equals(other as IValue<T>);
+            return this.Item.CompareTo(other.Item);
         }
 
         public bool Equals(ItemNode<T> other)
         {
-            if (other == null)
-                return false;
-
-            return Equals(other as IValue<T>);
+            throw new S.NotImplementedException();
         }
 
-        public override bool Equals(object obj)
+        public bool Equals(IOrdered<T> other)
         {
-            return Equals(obj as IValue<T>);
+            return this.Item.Equals(other.Item);
         }
 
         public override int GetHashCode()

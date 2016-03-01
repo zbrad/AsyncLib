@@ -5,12 +5,12 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    internal abstract class NodeCollection<N> : INodeCollection<N> where N : class, INode
+    internal abstract class NodeCollection<N> : INodeCollection<N> where N : INode, IEquatable<N>
     {
         public INode Root { get { return this.Head; } }
 
-        internal int version;
-        public int Version { get { return this.version; } }
+        internal long version;
+        public long Version { get { return this.version; } }
 
         int count;
         public int Count { get { return count; } }
@@ -18,6 +18,9 @@ namespace ZBrad.AsyncLib
         public INode Head { get; protected set; }
 
         public INode Tail { get; protected set; }
+
+        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+
 
         protected void IncrementCount()
         {
@@ -43,7 +46,7 @@ namespace ZBrad.AsyncLib
             while (cur != null)
             {
                 array[arrayIndex + i] = (N) cur;
-                cur = cur.Next;
+                cur = (N) cur.Next;
                 i++;
             }
         }
@@ -51,40 +54,40 @@ namespace ZBrad.AsyncLib
         public virtual void Clear()
         {
             var cur = this.Head;
+            this.Head = this.Tail = default(N);
+            ClearCount();
 
             while (cur != null)
             {
                 var next = cur.Next;
                 cur.Next = cur.Prev = null;
-                cur = next;
+                cur = (N) next;
             }
-
-            ClearCount();
         }
 
-        protected void Unlink(INode a)
-        {
-            if (a.Next == a)
-            {
-                // removing last item
-                this.Head = this.Tail = null;
-            }
-            else
-            {
-                // removing from inner link
-                a.Next.Prev = a.Prev;
-                a.Prev.Next = a.Next;
+        //protected void Unlink(INode a)
+        //{
+        //    if (a.Next == a)
+        //    {
+        //        // removing last item
+        //        this.Head = this.Tail = null;
+        //    }
+        //    else
+        //    {
+        //        // removing from inner link
+        //        a.Next.Prev = a.Prev;
+        //        a.Prev.Next = a.Next;
 
-                if (Head == a)
-                    Head = a.Next;
-                if (Tail == a)
-                    Tail = a.Prev;
-            }
+        //        if (Head == a)
+        //            Head = a.Next;
+        //        if (Tail == a)
+        //            Tail = a.Prev;
+        //    }
 
-            // clear links and update count
-            a.Prev = a.Next = null;
-            DecrementCount();
-        }
+        //    // clear links and update count
+        //    a.Prev = a.Next = null;
+        //    DecrementCount();
+        //}
 
         public G.IEnumerator<N> GetEnumerator()
         {
@@ -96,35 +99,41 @@ namespace ZBrad.AsyncLib
             return this.GetEnumerator();
         }
 
-        public virtual void Remove(N node)
-        {
-            if (node == null || this.Count == 0)
-                return;
+        //public virtual void Remove(N node)
+        //{
+        //    if (node == null || this.Count == 0)
+        //        return;
 
-            if (node.Prev == null && node.Next == null)
-                return;
+        //    if (node.Prev == null && node.Next == null)
+        //        return;
 
-            Unlink(node);
-        }
+        //    Unlink(node);
+        //}
 
-        public virtual N RemoveFromHead()
-        {
-            if (this.Count == 0)
-                return null;
+        //public virtual N RemoveFromHead()
+        //{
+        //    if (this.Count == 0)
+        //        return null;
 
-            var node = this.Head;
-            Unlink(node);
-            return (N) node;
-        }
+        //    var node = this.Head;
+        //    Unlink(node);
+        //    return (N) node;
+        //}
 
-        public virtual N RemoveFromTail()
-        {
-            if (this.Count == 0)
-                return null;
+        //public virtual N RemoveFromTail()
+        //{
+        //    if (this.Count == 0)
+        //        return null;
 
-            var node = this.Tail;
-            Unlink(node);
-            return (N) node;
-        }
+        //    var node = this.Tail;
+        //    Unlink(node);
+        //    return (N) node;
+        //}
+
+        public abstract void Add(N item);
+
+        public abstract bool Contains(N item);
+
+        public abstract bool Remove(N item);
     }
 }

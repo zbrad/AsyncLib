@@ -1,34 +1,37 @@
 ﻿using G = System.Collections.Generic;
-using System;
+using S = System;
 using System.Threading.Tasks;
 using System.Threading;
 namespace ZBrad.AsyncLib
 {
-    public interface IQueue<N> : INodeCollection<N> where N : INode
+    public interface IQueue<N> : INodeCollection<N> where N : INode, S.IEquatable<N>
     {
-        void Enqueue(N item);
+        bool Enqueue(N item);
         N Dequeue();
         N PeekHead();
         N PeekTail();
     }
 
-    public interface INodeQueueOrdered<N> : INodeCollection<N> where N : INodeComparable<N>, IComparable<N>, IEquatable<N>
+    public interface IQueueOrdered<N> : INodeCollection<N> where N : INode, S.IEquatable<N>, S.IComparable<N>
     {
-        void Enqueue(N item);
+        bool Enqueue(N item);
         N Dequeue();
         N PeekHead();
         N PeekTail();
     }
-    public interface IQueueAsync<N> : INodeCollectionAsync<N> where N : INode
+    public interface IQueueAsync<N> : INodeCollectionAsync<N> where N : INode, S.IEquatable<N>
     {
-        Task EnqueueAsync(N item);
-        Task EnqueueAsync(N item, CancellationToken token);
+        Task<bool> EnqueueAsync(N item);
+        Task<bool> EnqueueAsync(N item, CancellationToken token);
 
         Task<N> DequeueAsync();
         Task<N> DequeueAsync(CancellationToken token);
 
         Task<N> PeekHeadAsync();
+        Task<N> PeekHeadAsync(CancellationToken token);
+
         Task<N> PeekTailAsync();
+        Task<N> PeekTailAsync(CancellationToken token);
     }
 
 }

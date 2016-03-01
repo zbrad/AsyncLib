@@ -8,7 +8,7 @@ namespace ZBrad.AsyncLib
 {
     public delegate void CancelEvent<T>(Waiter<T> w);
 
-    public class Waiter<T> : INode, ICriticalNotifyCompletion, IDisposable
+    public class Waiter<T> : INode, IEquatable<Waiter<T>>, ICriticalNotifyCompletion, IDisposable
     {
         static long sequence = 0;
         static readonly CancellationTokenRegistration EmptyRegistration = default(CancellationTokenRegistration);
@@ -30,7 +30,7 @@ namespace ZBrad.AsyncLib
 
         public event CancelEvent<T> OnCancel;
 
-        public Waiter() 
+        Waiter() 
         {
             this.Result = default(T);
             this.IsCompleted = false;
@@ -79,16 +79,16 @@ namespace ZBrad.AsyncLib
                 cancel(this);
         }
 
-        public Waiter(T result)
-        {
-            this.Result = result;
-            this.IsCompleted = true;
-        }
+        //public Waiter(T result)
+        //{
+        //    this.Result = result;
+        //    this.IsCompleted = true;
+        //}
 
-        public void Completed()
-        {
-            Completed(default(T));
-        }
+        //public void Completed()
+        //{
+        //    Completed(default(T));
+        //}
 
         public void Completed(T result)
         {
