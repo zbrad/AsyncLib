@@ -108,17 +108,30 @@ namespace ZBrad.AsyncLib
                 // are we done adding?
                 if (isEnded)
                     return false;
-                queue.Enqueue(item);
 
-                while (waiters.Count > 0 && queue.Count > 0)
+                // special case for havings waiters and no queue elements
+                if (waiters.Count > 0 && queue.Count == 0)
                 {
                     var w = waiters.Dequeue();
-                    var x = queue.Dequeue();
-                    w.Completed(x);
+                    w.Completed(item);
+                    return true;
                 }
+
+                queue.Enqueue(item);
+                completeWaiters();
             }
 
             return true;
+        }
+
+        void completeWaiters()
+        {
+            while (waiters.Count > 0 && queue.Count > 0)
+            {
+                var w = waiters.Dequeue();
+                var x = queue.Dequeue();
+                w.Completed(x);
+            }
         }
 
         public Task<N> DequeueAsync()
@@ -140,13 +153,15 @@ namespace ZBrad.AsyncLib
                 if (isComplete())
                     return default(N);
 
-                if (waiters.Count == 0 && queue.Count == 1)
+                if (waiters.Count == 0 && queue.Count > 0)
                     return queue.Dequeue();
 
                 waiter = new Waiter<N>(token);
                 if (token != CancellationToken.None)
                     waiter.OnCancel += Waiter_OnCancel;
                 waiters.Enqueue(waiter);
+
+                completeWaiters();
             }
 
             N item = await waiter;
@@ -162,8 +177,6 @@ namespace ZBrad.AsyncLib
                     // this is safe while we hold the lock
                     waiters.Remove(w);
                 }
-
-                w.Completed(default(N));
             });
         }
 

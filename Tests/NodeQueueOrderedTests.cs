@@ -10,7 +10,7 @@ namespace Tests
     [TestClass]
     public class NodeQueueOrderedTests
     {
-        class NodeTest<T> where T : INode, IEquatable<T>, IComparable<T>, new()
+        class NodeTest<T,V> where T : IOrdered<V>, IEquatable<T>, IComparable<T> where V : IEquatable<V>, IComparable<V>
         {
             T[] values;
             public T[] Values { get { return values; } }
@@ -18,16 +18,20 @@ namespace Tests
             NodeQueueOrdered<T> queue = new NodeQueueOrdered<T>();
             public NodeQueueOrdered<T> Queue { get { return queue; } }
 
-            public NodeTest(int len)
+            Func<object, T> init;
+
+            public NodeTest(int len, Func<object, T> init)
             {
                 this.values = new T[len];
+                this.init = init;
+
                 for (var i = 0; i < this.values.Length; i++)
-                    this.values[i] = new T { Item = i };
+                    this.values[i] = init(i);
             }
 
             public void Enqueue(int index)
             {
-                var value = new T { Item = values[index].Item };
+                var value = this.init(values[index].Item);
                 queue.Enqueue(value);
                 Assert.AreEqual<T>(values[index], (T)queue.PeekTail());
             }
@@ -142,14 +146,14 @@ namespace Tests
         [TestMethod]
         public void Insert()
         {
-            var test = new NodeTest<ItemNode<int>>(5);
+            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
             test.Insert_001();
         }
 
         [TestMethod]
         public void Remove()
         {
-            var test = new NodeTest<ItemNode<int>>(5);
+            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
             test.Insert_001();
             test.Remove_001();
         }
@@ -157,7 +161,7 @@ namespace Tests
         [TestMethod]
         public void Enumerate()
         {
-            var test = new NodeTest<ItemNode<int>>(5);
+            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
             test.Insert_001();
 
             int index = 0;

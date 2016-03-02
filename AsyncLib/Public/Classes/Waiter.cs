@@ -14,7 +14,12 @@ namespace ZBrad.AsyncLib
         static readonly CancellationTokenRegistration EmptyRegistration = default(CancellationTokenRegistration);
         Action nextAction = null;
         long id = Interlocked.Increment(ref sequence);
-        CancellationTokenRegistration registration;
+
+        CancellationTokenRegistration userTokenReg;
+        CancellationTokenRegistration waiterTokenReg;
+        CancellationTokenSource cts = new CancellationTokenSource();
+
+        public CancellationToken Token { get { return cts.Token; } }
 
         public long Id { get { return id; } }
 
@@ -39,10 +44,13 @@ namespace ZBrad.AsyncLib
 
         public Waiter(CancellationToken token) : this()
         {
-            var id = Task.CurrentId;
-            Console.WriteLine("waiter taskid=" + id);
+            //var id = Task.CurrentId;
+            //log.Info("waiter taskid=" + id);
+
             if (token != CancellationToken.None)
-                registration = token.Register(this.cancel, token, true);
+                userTokenReg = token.Register(this.onUserCancel, token, true);
+
+            waiterTokenReg = cts.Token.Register(this.onWaiterCancel, cts.Token, true);
         }
 
         public bool Equals(Waiter<T> other)
@@ -66,36 +74,37 @@ namespace ZBrad.AsyncLib
             return this.Id.GetHashCode();
         }
 
-        void cancel(object otoken)
+        void onUserCancel(object otoken)
         {
-            var id = Task.CurrentId;
-            Console.WriteLine("cancel taskid=" + id);
             if (IsCompleted)
                 return;
 
+            cts.Cancel();
+        }
+
+        void onWaiterCancel(object otoken)
+        {
             IsCancelled = true;
+            IsCompleted = true;
+
             var cancel = this.OnCancel;
             if (cancel != null)
                 cancel(this);
         }
 
-        //public Waiter(T result)
-        //{
-        //    this.Result = result;
-        //    this.IsCompleted = true;
-        //}
-
-        //public void Completed()
-        //{
-        //    Completed(default(T));
-        //}
-
         public void Completed(T result)
         {
+            if (cts.Token.IsCancellationRequested)
+                cts.Token.ThrowIfCancellationRequested();
+
             this.Result = result; 
             this.IsCompleted = true;
-
             this.nextAction();
+        }
+
+        public void Cancel()
+        {
+            cts.Cancel();
         }
 
         public Waiter<T> GetAwaiter() { return this; }
@@ -122,8 +131,13 @@ namespace ZBrad.AsyncLib
             {
                 if (disposing)
                 {
-                    if (registration != EmptyRegistration)
-                        registration.Dispose();
+                    if (!userTokenReg.Equals(EmptyRegistration))
+                        userTokenReg.Dispose();
+                    userTokenReg = EmptyRegistration;
+
+                    if (!waiterTokenReg.Equals(EmptyRegistration))
+                        waiterTokenReg.Dispose();
+                    waiterTokenReg = EmptyRegistration;
                 }
 
                 disposedValue = true;

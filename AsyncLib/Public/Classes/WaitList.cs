@@ -241,6 +241,7 @@ namespace ZBrad.AsyncLib.Public.Classes
                 if (isEnded)
                     return false;
 
+                // special case for new item
                 if (list.Count == 0 && waiters.Count > 0)
                 {
                     // if only item, and already waiters, then just give first waiter this item
@@ -252,19 +253,23 @@ namespace ZBrad.AsyncLib.Public.Classes
 
                 action(item);
 
-                if (waiters.Count > 0)
-                {
-                    // get type of waiter and complete with appropriate item
-                    var w = waiters.Dequeue();
-                    if (w is HeadWaiter)
-                        w.Completed(list.RemoveFromHead());
-                    else if (w is TailWaiter)
-                        w.Completed(list.RemoveFromTail());
-                    else
-                        w.Completed(null);
-                }
-
+                completeWaiters();
                 return true;
+            }
+        }
+
+        void completeWaiters()
+        {
+            while (waiters.Count > 0 && list.Count > 0)
+            {
+                // get type of waiter and complete with appropriate item
+                var w = waiters.Dequeue();
+                if (w is HeadWaiter)
+                    w.Completed(list.RemoveFromHead());
+                else if (w is TailWaiter)
+                    w.Completed(list.RemoveFromTail());
+                else
+                    throw new InvalidOperationException("unknown waiter type");
             }
         }
 
@@ -277,30 +282,36 @@ namespace ZBrad.AsyncLib.Public.Classes
                 if (isComplete())
                     return default(N);
 
-                if (list.Count > 0)
-                {
+                if (waiters.Count == 0 && list.Count > 0)
                     return remover();
-                }
 
-                if (typeof(W) == typeof(HeadWaiter))
-                {
-                    waiter = new HeadWaiter(token);
-                }
-                else if (typeof(W) == typeof(TailWaiter))
-                {
-                    waiter = new TailWaiter(token);
-                }
-                else
-                    throw new InvalidOperationException("invalid waiter type");
-
-                if (token != CancellationToken.None)
-                    waiter.OnCancel += waiterOnCancel;
-
-                waiters.Enqueue(waiter);
+                waiter = addWaiter<W>(token);
+                completeWaiters();
             }
 
             N item = await waiter;
             return item;
+        }
+
+        Waiter<N> addWaiter<W>(CancellationToken token)
+        {
+            Waiter<N> waiter = null;
+            if (typeof(W) == typeof(HeadWaiter))
+            {
+                waiter = new HeadWaiter(token);
+            }
+            else if (typeof(W) == typeof(TailWaiter))
+            {
+                waiter = new TailWaiter(token);
+            }
+            else
+                throw new InvalidOperationException("invalid waiter type");
+
+            if (token != CancellationToken.None)
+                waiter.OnCancel += waiterOnCancel;
+
+            waiters.Enqueue(waiter);
+            return waiter;
         }
 
         void waiterOnCancel(Waiter<N> w)
@@ -311,8 +322,6 @@ namespace ZBrad.AsyncLib.Public.Classes
                 {
                     waiters.Remove(w);
                 }
-
-                w.Completed(null);
             });
         }
 

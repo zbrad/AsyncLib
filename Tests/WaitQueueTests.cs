@@ -108,7 +108,7 @@ namespace Tests
                 Assert.IsTrue(await queue.IsEndedAsync());
                 Assert.IsFalse(await queue.IsEmptyAsync());
                 Assert.IsFalse(await queue.IsCompleteAsync());
-                while (await queue.CountAsync > 0)
+                while (queue.Count > 0)
                     await queue.DequeueAsync();
                 Assert.IsTrue(await queue.IsCompleteAsync());
                 Assert.IsTrue(await queue.IsEmptyAsync());
