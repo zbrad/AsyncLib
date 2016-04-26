@@ -64,7 +64,6 @@
     <Compile Include="Public\Classes\WaitQueue.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="AsyncLib.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup />
