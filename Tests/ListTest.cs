@@ -2,40 +2,40 @@
 using System;
 using System.Diagnostics.CodeAnalysis;
 using ZBrad.AsyncLib;
+using ZBrad.AsyncLib.Collections;
+using ZBrad.AsyncLib.Links;
 
 namespace Tests
 {
     [ExcludeFromCodeCoverage]
-    internal class ListTest<T> where T : INode, IEquatable<T>, IComparable<T>
+    internal class ListTest<T> where T : IEquatable<T>, IComparable<T>
     {
         T[] values;
         public T[] Values { get { return values; } }
 
-        NodeList<T> list = new NodeList<T>();
-        public NodeList<T> List { get { return list; } }
+        LinkedList<T> list = new LinkedList<T>();
+        public LinkedList<T> List { get { return list; } }
 
         Func<T, T> copy;
 
-        public ListTest(int count, Func<int,T> create, Func<T,T> copy)
+        public ListTest(Func<T[]> create, Func<T,T> copy)
         {
             this.copy = copy;
-            values = new T[count];
-            for (int i = 0; i < values.Length; i++)
-                values[i] = create(i);
+            this.values = create();
         }
 
         public void InsertAtHead(int index)
         {
             var value = this.copy(values[index]);
             list.InsertAtHead(value);
-            Assert.AreEqual<T>(values[index], (T)list.Head);
+            Assert.AreEqual<T>(values[index], list.Head.Value);
         }
 
         public void InsertAtTail(int index)
         {
             var value = this.copy(values[index]);
             list.InsertAtTail(value);
-            Assert.AreEqual<T>(values[index], (T)list.Tail);
+            Assert.AreEqual<T>(values[index], list.Tail.Value);
         }
 
         public bool IsEmpty()
@@ -74,22 +74,22 @@ namespace Tests
             Assert.IsNotNull(list.Tail);
 
             // verify items on list (from Head)
-            Assert.AreEqual<T>(values[0], (T)list.Head);
+            Assert.AreEqual<T>(values[0], list.Head.Value);
             Assert.IsNotNull(list.Head.Next);
-            Assert.AreEqual<T>(values[0], (T)list.Head.Next);
+            Assert.AreEqual<T>(values[0], list.Head.Next.Value);
             Assert.IsNotNull(list.Head.Next.Next);
-            Assert.AreEqual<T>(values[1], (T)list.Head.Next.Next);
+            Assert.AreEqual<T>(values[1], list.Head.Next.Next.Value);
             Assert.IsNotNull(list.Head.Next.Next.Next);
-            Assert.AreEqual<INode>(list.Head, list.Head.Next.Next.Next);
+            Assert.AreEqual<ILink>(list.Head, list.Head.Next.Next.Next);
 
             // verify items on list (from Tail)
-            Assert.AreEqual<T>(values[1], (T)list.Tail);
+            Assert.AreEqual<T>(values[1], list.Tail.Value);
             Assert.IsNotNull(list.Tail.Prev);
-            Assert.AreEqual<T>(values[0], (T)list.Tail.Prev);
+            Assert.AreEqual<T>(values[0], list.Tail.Prev.Value);
             Assert.IsNotNull(list.Tail.Prev.Prev);
-            Assert.AreEqual<T>(values[0], (T)list.Tail.Prev.Prev);
+            Assert.AreEqual<T>(values[0], list.Tail.Prev.Prev.Value);
             Assert.IsNotNull(list.Tail.Prev.Prev.Prev);
-            Assert.AreEqual<INode>(list.Tail, list.Tail.Prev.Prev.Prev);
+            Assert.AreEqual<ILink>(list.Tail, list.Tail.Prev.Prev.Prev);
         }
 
         public void Remove_001()
@@ -105,12 +105,12 @@ namespace Tests
             // confirm list shape
             Assert.IsNotNull(list.Head);
             Assert.IsNotNull(list.Head.Next);
-            Assert.AreEqual<INode>(list.Head, list.Head.Next.Next);
+            Assert.AreEqual<ILink>(list.Head, list.Head.Next.Next);
 
 
             // test head and next
-            Assert.AreEqual<T>(values[0], (T)list.Head);
-            Assert.AreEqual<T>(values[1], (T)list.Head.Next);
+            Assert.AreEqual<T>(values[0], list.Head.Value);
+            Assert.AreEqual<T>(values[1], list.Head.Next.Value);
 
             // remove second item
             item = list.RemoveFromHead();
@@ -121,11 +121,11 @@ namespace Tests
             Assert.IsNotNull(list.Tail);
             Assert.IsNotNull(list.Head.Prev);
             Assert.IsNotNull(list.Tail.Next);
-            Assert.AreEqual<INode>(list.Head, list.Tail);
-            Assert.AreEqual<INode>(list.Head, list.Head.Next);
+            Assert.AreEqual<ILink>(list.Head, list.Tail);
+            Assert.AreEqual<ILink>(list.Head, list.Head.Next);
 
             Assert.AreEqual<T>(values[0], item);
-            Assert.AreEqual<T>(values[1], (T)list.Head);
+            Assert.AreEqual<T>(values[1], list.Head.Value);
 
             // remove third item
             item = list.RemoveFromHead();

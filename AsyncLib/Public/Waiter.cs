@@ -3,12 +3,14 @@ using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using ZBrad.AsyncLib.Links;
+using ZBrad.AsyncLib.Nodes;
 
 namespace ZBrad.AsyncLib
 {
     public delegate void CancelEvent<T>(Waiter<T> w);
 
-    public class Waiter<T> : INode, IEquatable<Waiter<T>>, ICriticalNotifyCompletion, IDisposable
+    public class Waiter<T> : ICriticalNotifyCompletion, IDisposable, IEquatable<Waiter<T>>
     {
         static long sequence = 0;
         static readonly CancellationTokenRegistration EmptyRegistration = default(CancellationTokenRegistration);
@@ -29,10 +31,6 @@ namespace ZBrad.AsyncLib
 
         public bool IsCancelled { get; private set; }
 
-        INode INode.Prev { get; set; }
-
-        INode INode.Next { get; set; }
-
         public event CancelEvent<T> OnCancel;
 
         Waiter() 
@@ -44,8 +42,7 @@ namespace ZBrad.AsyncLib
 
         public Waiter(CancellationToken token) : this()
         {
-            //var id = Task.CurrentId;
-            //log.Info("waiter taskid=" + id);
+            token.ThrowIfCancellationRequested();
 
             if (token != CancellationToken.None)
                 userTokenReg = token.Register(this.onUserCancel, token, true);
@@ -76,10 +73,7 @@ namespace ZBrad.AsyncLib
 
         void onUserCancel(object otoken)
         {
-            if (IsCompleted)
-                return;
-
-            cts.Cancel();
+            this.Cancel();
         }
 
         void onWaiterCancel(object otoken)
@@ -94,9 +88,6 @@ namespace ZBrad.AsyncLib
 
         public void Completed(T result)
         {
-            if (cts.Token.IsCancellationRequested)
-                cts.Token.ThrowIfCancellationRequested();
-
             this.Result = result; 
             this.IsCompleted = true;
             this.nextAction();
@@ -104,6 +95,11 @@ namespace ZBrad.AsyncLib
 
         public void Cancel()
         {
+            // if we have already completed, then we ignore the cancel
+            if (IsCompleted)
+                return;
+
+            // signal cancel to anyone we used
             cts.Cancel();
         }
 

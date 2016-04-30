@@ -5,17 +5,18 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using ZBrad.AsyncLib.Collections;
+using ZBrad.AsyncLib.Nodes;
 
-namespace ZBrad.AsyncLib.Public.Classes
+namespace ZBrad.AsyncLib
 {
-    public class WaitList<N> : IListAsync<N>, IWaitable where N : INode, IEquatable<N>
+    public class WaitList<N> : IValueAsyncCollection<N>, IWaitable where N : IEquatable<N>
     {
-        NodeList<N> list = new NodeList<N>();
+        LinkedList<N> list = new LinkedList<N>();
         bool isEnded = false;
-        static Task<N> Cancelled { get { return (Task<N>)TaskEx.Cancelled; } }
 
         // we have to use list to allow cancel cleanup
-        NodeQueue<Waiter<N>> waiters = new NodeQueue<Waiter<N>>();
+        LinkedList<RemovalWaiter> waiters = new LinkedList<RemovalWaiter>();
 
         public int WaitCount { get { return waiters.Count; } }
 
@@ -24,11 +25,11 @@ namespace ZBrad.AsyncLib.Public.Classes
 
         public long Version { get { return list.Version; } }
 
-        public INode Root { get { return list.Root; } }
+        IValue<N> IValueAsyncCollection<N>.Root { get { return list.Root; } }      
 
         public int Count { get { return list.Count; } }
 
-        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+        public bool IsReadOnly { get { return false; } }
 
         public Task<bool> InsertAtHeadAsync(N item) { return InsertAtHeadAsync(item, CancellationToken.None); }
 
@@ -38,21 +39,7 @@ namespace ZBrad.AsyncLib.Public.Classes
 
         public Task<N> RemoveFromTailAsync() { return RemoveFromTailAsync(CancellationToken.None); }
 
-        public Task<bool> InsertBeforeAsync(N item, N node) { return InsertBeforeAsync(item, node, CancellationToken.None); }
-
-        public Task<bool> InsertAfterAsync(N item, N node) { return InsertAfterAsync(item, node, CancellationToken.None); }
-
-        public Task<bool> RemoveAsync(N node) { return RemoveAsync(node, CancellationToken.None); }
-
-        public Task<bool> InsertBeforeAsync(N item, N node, CancellationToken token)
-        {
-            return insert(item, (x) => list.InsertBefore(item, node), token);
-        }
-
-        public Task<bool> InsertAfterAsync(N item, N node, CancellationToken token)
-        {
-            return insert(item, (x) => list.InsertAfter(item, node), token);
-        }
+        public Task<bool> RemoveAsync(N value) { return RemoveAsync(value, CancellationToken.None); }
 
         public Task<bool> InsertAtHeadAsync(N item, CancellationToken token)
         {
@@ -66,14 +53,13 @@ namespace ZBrad.AsyncLib.Public.Classes
 
         public Task<N> RemoveFromHeadAsync(CancellationToken token)
         {
-            return remove<HeadWaiter>(() => list.RemoveFromHead(), token);
+            return remove(() => list.RemoveFromHead(), token);
         }
 
         public Task<N> RemoveFromTailAsync(CancellationToken token)
         {
-            return remove<TailWaiter>(() => list.RemoveFromTail(), token);
+            return remove(() => list.RemoveFromTail(), token);
         }
-
 
         public async Task<bool> RemoveAsync(N node, CancellationToken token)
         {
@@ -96,14 +82,14 @@ namespace ZBrad.AsyncLib.Public.Classes
             }
         }
 
-        public void EndEnqueue()
+        public Task EndEnqueueAsync()
         {
-            endEnqueue().Wait();
+            return EndEnqueueAsync(CancellationToken.None);
         }
 
-        async Task endEnqueue()
-        {
-            using (await this.Locker.WaitAsync())
+        public async Task EndEnqueueAsync(CancellationToken token)
+        { 
+            using (await this.Locker.WaitAsync(token))
             {
                 isEnded = true;
             }
@@ -148,20 +134,16 @@ namespace ZBrad.AsyncLib.Public.Classes
             return InsertAtTailAsync(item, token);
         }
 
-        public Task<bool> ClearAsync()
+        public Task ClearAsync()
         {
             return ClearAsync(CancellationToken.None);
         }
 
-        public async Task<bool> ClearAsync(CancellationToken token)
+        public async Task ClearAsync(CancellationToken token)
         {
             using (await this.Locker.WaitAsync(token))
             {
-                if (list.Count == 0)
-                    return true;
-
                 list.Clear();
-                return true;
             }
         }
 
@@ -178,49 +160,28 @@ namespace ZBrad.AsyncLib.Public.Classes
             }
         }
 
-        public Task<bool> CopyToAsync(N[] array, int arrayIndex)
+        public Task CopyToAsync(N[] array, int arrayIndex)
         {
             return CopyToAsync(array, arrayIndex, CancellationToken.None);
         }
 
-        public async Task<bool> CopyToAsync(N[] array, int arrayIndex, CancellationToken token)
+        public async Task CopyToAsync(N[] array, int arrayIndex, CancellationToken token)
         {
             using (await this.Locker.WaitAsync(token))
             {
                 list.CopyTo(array, arrayIndex);
-                return true;
             }
         }
 
         #endregion
 
-        #region ICollection methods
 
-        void G.ICollection<N>.Add(N item) { throw new NotImplementedException("use InsertAsync methods"); }
+        #region async enumerator
 
-        void G.ICollection<N>.Clear() { throw new NotImplementedException("use ClearAsync methods"); }
-
-        bool G.ICollection<N>.Contains(N item) { throw new NotImplementedException("use ContainsAsync methods"); }
-
-        void G.ICollection<N>.CopyTo(N[] array, int arrayIndex) { throw new NotImplementedException("use CopyToAsync methods"); }
-
-        bool G.ICollection<N>.Remove(N item) { throw new NotImplementedException("use RemoveAsync methods"); }
-
-        #endregion
-
-        #region INodeNumerableAsync, INodeEnumerable, G.IEnumerable<N>, C.IEnumerable
-
-        public IAsyncEnumerator<N> GetAsyncEnumerator()
+        public IValueAsyncEnumerator<N> GetAsyncEnumerator()
         {
-            return new NodesEnumAsync<N>(this);
+            return new NodeEnumAsync<N>(this);
         }
-
-        G.IEnumerator<N> G.IEnumerable<N>.GetEnumerator()
-        {
-            return new SynchronousEnumerator<N>(this.GetAsyncEnumerator());
-        }
-
-        C.IEnumerator C.IEnumerable.GetEnumerator() { return ((G.IEnumerable<N>)this).GetEnumerator(); }
 
         #endregion
 
@@ -246,7 +207,7 @@ namespace ZBrad.AsyncLib.Public.Classes
                 {
                     // if only item, and already waiters, then just give first waiter this item
                     // doesn't matter if head or tail
-                    var w = waiters.Dequeue();
+                    var w = waiters.RemoveFromHead();
                     w.Completed(item);
                     return true;
                 }
@@ -262,20 +223,15 @@ namespace ZBrad.AsyncLib.Public.Classes
         {
             while (waiters.Count > 0 && list.Count > 0)
             {
-                // get type of waiter and complete with appropriate item
-                var w = waiters.Dequeue();
-                if (w is HeadWaiter)
-                    w.Completed(list.RemoveFromHead());
-                else if (w is TailWaiter)
-                    w.Completed(list.RemoveFromTail());
-                else
-                    throw new InvalidOperationException("unknown waiter type");
+                // execute the function to get the item and complete with func returned item
+                var w = waiters.RemoveFromHead();
+                w.Completed(w.Func());
             }
         }
 
-        async Task<N> remove<W>(Func<N> remover, CancellationToken token) where W : Waiter<N>
+        async Task<N> remove(Func<N> remover, CancellationToken token)
         {
-            Waiter<N> waiter = null;
+            RemovalWaiter waiter = null;
 
             using (await this.Locker.WaitAsync(token))
             {
@@ -285,33 +241,17 @@ namespace ZBrad.AsyncLib.Public.Classes
                 if (waiters.Count == 0 && list.Count > 0)
                     return remover();
 
-                waiter = addWaiter<W>(token);
+                waiter = new RemovalWaiter(remover, token);
+
+                if (token != CancellationToken.None)
+                    waiter.OnCancel += waiterOnCancel;
+                waiters.InsertAtTail(waiter);
+
                 completeWaiters();
             }
 
             N item = await waiter;
             return item;
-        }
-
-        Waiter<N> addWaiter<W>(CancellationToken token)
-        {
-            Waiter<N> waiter = null;
-            if (typeof(W) == typeof(HeadWaiter))
-            {
-                waiter = new HeadWaiter(token);
-            }
-            else if (typeof(W) == typeof(TailWaiter))
-            {
-                waiter = new TailWaiter(token);
-            }
-            else
-                throw new InvalidOperationException("invalid waiter type");
-
-            if (token != CancellationToken.None)
-                waiter.OnCancel += waiterOnCancel;
-
-            waiters.Enqueue(waiter);
-            return waiter;
         }
 
         void waiterOnCancel(Waiter<N> w)
@@ -320,7 +260,7 @@ namespace ZBrad.AsyncLib.Public.Classes
             {
                 using (await this.Locker.WaitAsync())
                 {
-                    waiters.Remove(w);
+                    waiters.Remove((RemovalWaiter) w);
                 }
             });
         }
@@ -329,14 +269,15 @@ namespace ZBrad.AsyncLib.Public.Classes
 
         #region private classes
 
-        class HeadWaiter : Waiter<N>
+        class RemovalWaiter : Waiter<N>, IEquatable<RemovalWaiter>
         {
-            public HeadWaiter(CancellationToken token) : base(token) { }
-        }
+            public Func<N> Func { get; private set; }
+            public RemovalWaiter(Func<N> func, CancellationToken token) : base(token) { this.Func = func; }
 
-        class TailWaiter : Waiter<N>
-        {
-            public TailWaiter(CancellationToken token) : base(token) { }
+            public bool Equals(RemovalWaiter other)
+            {
+                return base.Equals(other);
+            }
         }
 
         #endregion

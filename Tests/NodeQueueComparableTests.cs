@@ -35,15 +35,14 @@ namespace Tests
             int[] indexes = { 0, 0, 1 };
             foreach (var item in test.Queue)
             {
-                Assert.AreEqual<ItemNode<int>>(test.Values[indexes[index++]], item);
+                Assert.AreEqual<int>(test.Values[indexes[index++]], item);
             }
         }
 
-        NodeQueueOrderedTest<ItemNode<int>> getTest()
+        NodeQueueOrderedTest<int> getTest()
         {
-            return new NodeQueueOrderedTest<ItemNode<int>>(5,
-                (i) => new ItemNode<int> { Item = i },
-                (t) => new ItemNode<int> { Item = t.Item });
+            return new NodeQueueOrderedTest<int>(
+                () => new int[5], (x) => x);
         }
     }
 }

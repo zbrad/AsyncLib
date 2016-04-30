@@ -3,37 +3,33 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using ZBrad.AsyncLib;
 using System.Threading;
 using System.Diagnostics.CodeAnalysis;
-
+using ZBrad.AsyncLib.Collections;
+using ZBrad.AsyncLib.Nodes;
+using ZBrad.AsyncLib.Links;
 namespace Tests
 {
     [ExcludeFromCodeCoverage]
     [TestClass]
     public class NodeQueueOrderedTests
     {
-        class NodeTest<T,V> where T : IOrdered<V>, IEquatable<T>, IComparable<T> where V : IEquatable<V>, IComparable<V>
+        class NodeTest<T> where T : IEquatable<T>, IComparable<T>
         {
             T[] values;
             public T[] Values { get { return values; } }
 
-            NodeQueueOrdered<T> queue = new NodeQueueOrdered<T>();
-            public NodeQueueOrdered<T> Queue { get { return queue; } }
+            OrderedQueue<T> queue = new OrderedQueue<T>();
+            public OrderedQueue<T> Queue { get { return queue; } }
 
-            Func<object, T> init;
-
-            public NodeTest(int len, Func<object, T> init)
+            public NodeTest(Func<T[]> values)
             {
-                this.values = new T[len];
-                this.init = init;
-
-                for (var i = 0; i < this.values.Length; i++)
-                    this.values[i] = init(i);
+                this.values = values();
             }
 
             public void Enqueue(int index)
             {
-                var value = this.init(values[index].Item);
-                queue.Enqueue(value);
-                Assert.AreEqual<T>(values[index], (T)queue.PeekTail());
+                queue.Enqueue(values[index]);
+                var peek = queue.PeekTail();
+                Assert.AreEqual<T>(values[index], peek);
             }
 
             public bool IsEmpty()
@@ -59,39 +55,40 @@ namespace Tests
                 Enqueue(1);
 
                 // verify
-                Verify_001();
+                Verify_001(3);
             }
 
-            public void Verify_001()
+            public void Verify_001(int count)
             {
                 // validate our expected list
-                Assert.AreEqual<int>(3, queue.Count);
+                Assert.AreEqual<int>(count, queue.Count);
                 Assert.IsNotNull(queue.Root);
                 Assert.IsNotNull(queue.Root.Prev);
 
                 // verify items on list (from Root)
-                Assert.AreEqual<T>(values[0], (T)queue.Root);
+                var root = queue.Root;
+                Assert.AreEqual<T>(values[0], root.Value);
                 Assert.IsNotNull(queue.Root.Next);
-                Assert.AreEqual<T>(values[0], (T)queue.Root.Next);
+                Assert.AreEqual<T>(values[0], root.Next.Value);
                 Assert.IsNotNull(queue.Root.Next.Next);
-                Assert.AreEqual<T>(values[1], (T)queue.Root.Next.Next);
+                Assert.AreEqual<T>(values[1], root.Next.Next.Value);
                 Assert.IsNotNull(queue.Root.Next.Next.Next);
-                Assert.AreEqual<INode>(queue.Root, queue.Root.Next.Next.Next);
+                Assert.AreEqual<ILink>(root, root.Next.Next.Next);
 
                 // verify items on list (from Root.Prev)
-                Assert.AreEqual<T>(values[1], (T)queue.Root.Prev);
+                Assert.AreEqual<T>(values[1], root.Prev.Value);
                 Assert.IsNotNull(queue.Root.Prev.Prev);
-                Assert.AreEqual<T>(values[0], (T)queue.Root.Prev.Prev);
+                Assert.AreEqual<T>(values[0], root.Prev.Prev.Value);
                 Assert.IsNotNull(queue.Root.Prev.Prev.Prev);
-                Assert.AreEqual<T>(values[0], (T)queue.Root.Prev.Prev.Prev);
+                Assert.AreEqual<T>(values[0], root.Prev.Prev.Prev.Value);
                 Assert.IsNotNull(queue.Root.Prev.Prev.Prev.Prev);
-                Assert.AreEqual<INode>(queue.Root.Prev, queue.Root.Prev.Prev.Prev.Prev);
+                Assert.AreEqual<ILink>(queue.Root.Prev, queue.Root.Prev.Prev.Prev.Prev);
             }
 
             public void Remove_001()
             {
                 // verify 001 layout
-                Verify_001();
+                Verify_001(3);
 
                 // remove first item
                 T item = (T)queue.Dequeue();
@@ -101,12 +98,12 @@ namespace Tests
                 // confirm list shape
                 Assert.IsNotNull(queue.Root);
                 Assert.IsNotNull(queue.Root.Next);
-                Assert.AreEqual<INode>(queue.Root, queue.Root.Next.Next);
+                Assert.AreEqual<ILink>(queue.Root, queue.Root.Next.Next);
 
 
                 // test Head and Tail
-                Assert.AreEqual<T>(values[0], (T)queue.PeekHead());
-                Assert.AreEqual<T>(values[1], (T)queue.PeekTail());
+                Assert.AreEqual<T>(values[0], queue.PeekHead());
+                Assert.AreEqual<T>(values[1], queue.PeekTail());
 
                 // remove second item
                 item = (T)queue.Dequeue();
@@ -116,44 +113,43 @@ namespace Tests
                 Assert.IsNotNull(queue.Root);
                 Assert.IsNotNull(queue.Root.Next);
                 Assert.IsNotNull(queue.Root.Prev);
-                Assert.AreEqual<INode>(queue.Root, queue.Root.Prev);
-                Assert.AreEqual<INode>(queue.Root, queue.Root.Next);
+                Assert.AreEqual<ILink>(queue.Root, queue.Root.Prev);
+                Assert.AreEqual<ILink>(queue.Root, queue.Root.Next);
 
                 Assert.AreEqual<T>(values[0], item);
-                Assert.AreEqual<T>(values[1], (T)queue.PeekHead());
+                Assert.AreEqual<T>(values[1], queue.PeekHead());
 
                 // remove third item
-                item = (T)queue.Dequeue();
+                item = queue.Dequeue();
                 Assert.AreEqual<int>(0, queue.Count);
                 Assert.AreEqual<T>(values[1], item);
 
                 // verify Root/Root.Prev cleaned up
-                Assert.IsNull(queue.PeekHead());
-                Assert.IsNull(queue.PeekTail());
+                Assert.AreEqual<T>(default(T), queue.PeekHead());
+                Assert.AreEqual<T>(default(T), queue.PeekTail());
                 Assert.IsNull(queue.Root);
             }
         }
 
-        static ItemNode<int>[] ItemValues = GetValues();
-        static ItemNode<int>[] GetValues()
+        static int[] GetValues(int count)
         {
-            ItemNode<int>[] values = new ItemNode<int>[5];
+            int[] values = new int[count];
             for (var i = 0; i < values.Length; i++)
-                values[i] = new ItemNode<int>() { Item = i };
+                values[i] = i;
             return values;
         }
 
         [TestMethod]
         public void Insert()
         {
-            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
+            var test = new NodeTest<int>(() => GetValues(5));
             test.Insert_001();
         }
 
         [TestMethod]
         public void Remove()
         {
-            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
+            var test = new NodeTest<int>(() => GetValues(5));
             test.Insert_001();
             test.Remove_001();
         }
@@ -161,14 +157,14 @@ namespace Tests
         [TestMethod]
         public void Enumerate()
         {
-            var test = new NodeTest<ItemNode<int>, int>(5, (x) => new ItemNode<int> { Item = (int)x });
+            var test = new NodeTest<int>(() => GetValues(5));
             test.Insert_001();
 
             int index = 0;
             int[] indexes = { 0, 0, 1 };
             foreach (var item in test.Queue)
             {
-                Assert.AreEqual<ItemNode<int>>(test.Values[indexes[index++]], item);
+                Assert.AreEqual<int>(test.Values[indexes[index++]], item);
             }
         }
     }

@@ -1,4 +1,4 @@
-﻿using S = System;
+﻿using System;
 
 using C = System.Collections;
 using G = System.Collections.Generic;
@@ -6,17 +6,27 @@ using U = System.Collections.Concurrent;
 
 using System.Threading;
 using System.Threading.Tasks;
+using ZBrad.AsyncLib.Collections;
+using ZBrad.AsyncLib.Nodes;
 
 namespace ZBrad.AsyncLib
 {
-    public class WaitQueue<N> : IQueueAsync<N>, IWaitable where N : INode, S.IEquatable<N>
+    public class WaitQueue<N> : IValueAsyncCollection<N>, IWaitable where N : IEquatable<N>
     {
-        NodeQueue<N> queue = new NodeQueue<N>();
+        static Task<N> faulted;
+
+        static WaitQueue()
+        {
+            var tcs = new TaskCompletionSource<N>();
+            tcs.SetException(new TaskCanceledException());
+            faulted = tcs.Task;
+        }
+
+        Queue<N> queue = new Queue<N>();
         bool isEnded = false;
-        static Task<N> Cancelled { get { return (Task<N>)TaskEx.Cancelled; } }
 
         // we have to use list to allow cancel cleanup
-        NodeQueue<Waiter<N>> waiters = new NodeQueue<Waiter<N>>();
+        LinkedList<Waiter<N>> waiters = new LinkedList<Waiter<N>>();
 
         public int WaitCount { get { return waiters.Count; } }
 
@@ -25,19 +35,18 @@ namespace ZBrad.AsyncLib
 
         public int Count { get { return queue.Count; } }
 
-
         public long Version { get { return queue.Version; } }
 
-        public INode Root { get { return queue.Root; } }
+        public bool IsReadOnly { get { return false; } }
 
-        bool G.ICollection<N>.IsReadOnly { get { return false; } }
+        IValue<N> IValueAsyncCollection<N>.Root { get { return (IValue<N>) queue.Root; } }
 
-        public void EndEnqueue()
+        public Task EndEnqueueAsync()
         {
-            endEnqueue().Wait();
+            return EndEnqueueAsync(CancellationToken.None);
         }
 
-        async Task endEnqueue()
+        public async Task EndEnqueueAsync(CancellationToken token)
         {
             using (await this.Locker.WaitAsync())
             {
@@ -98,6 +107,9 @@ namespace ZBrad.AsyncLib
 
         public Task<bool> EnqueueAsync(N item, CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return TaskEx.FaultedBool;
+
             return enqueue(item, token);
         }
 
@@ -112,7 +124,7 @@ namespace ZBrad.AsyncLib
                 // special case for havings waiters and no queue elements
                 if (waiters.Count > 0 && queue.Count == 0)
                 {
-                    var w = waiters.Dequeue();
+                    var w = waiters.RemoveFromHead();
                     w.Completed(item);
                     return true;
                 }
@@ -128,7 +140,7 @@ namespace ZBrad.AsyncLib
         {
             while (waiters.Count > 0 && queue.Count > 0)
             {
-                var w = waiters.Dequeue();
+                var w = waiters.RemoveFromHead();
                 var x = queue.Dequeue();
                 w.Completed(x);
             }
@@ -141,6 +153,9 @@ namespace ZBrad.AsyncLib
 
         public Task<N> DequeueAsync(CancellationToken token)
         {
+            if (token.IsCancellationRequested)
+                return faulted;
+
             return dequeue(token);
         }
 
@@ -159,7 +174,7 @@ namespace ZBrad.AsyncLib
                 waiter = new Waiter<N>(token);
                 if (token != CancellationToken.None)
                     waiter.OnCancel += Waiter_OnCancel;
-                waiters.Enqueue(waiter);
+                waiters.InsertAtTail(waiter);
 
                 completeWaiters();
             }
@@ -207,23 +222,17 @@ namespace ZBrad.AsyncLib
             }
         }
 
-        public Task<bool> CopyToAsync(N[] array, int arrayIndex)
+        public Task CopyToAsync(N[] array, int arrayIndex)
         {
             return CopyToAsync(array, arrayIndex, CancellationToken.None);
         }
 
-        public async Task<bool> CopyToAsync(N[] array, int arrayIndex, CancellationToken token)
+        public async Task CopyToAsync(N[] array, int arrayIndex, CancellationToken token)
         {
             using (await this.Locker.WaitAsync(token))
             {
                 queue.CopyTo(array, arrayIndex);
-                return true;
             }
-        }
-
-        public IAsyncEnumerator<N> GetAsyncEnumerator()
-        {
-            return new NodesEnumAsync<N>(this);
         }
 
         public async Task<bool> ContainsAsync(N item, CancellationToken token)
@@ -234,17 +243,16 @@ namespace ZBrad.AsyncLib
             }
         }
 
-        public Task<bool> ClearAsync()
+        public Task ClearAsync()
         {
             return ClearAsync(CancellationToken.None);
         }
 
-        public async Task<bool> ClearAsync(CancellationToken token)
+        public async Task ClearAsync(CancellationToken token)
         {
             using (await this.Locker.WaitAsync())
             {
                 queue.Clear();
-                return true;
             }
         }
 
@@ -276,13 +284,9 @@ namespace ZBrad.AsyncLib
             return EnqueueAsync(item, token);
         }
 
-        G.IEnumerator<N> G.IEnumerable<N>.GetEnumerator() { throw new S.NotImplementedException("use GetAsync"); }
-        void G.ICollection<N>.Add(N item) { throw new S.NotImplementedException("use AddAsync"); }
-        void G.ICollection<N>.Clear() { throw new S.NotImplementedException("use ClearAsync"); }
-        bool G.ICollection<N>.Contains(N item) { throw new S.NotImplementedException("use ContainsAsync"); }
-        void G.ICollection<N>.CopyTo(N[] array, int arrayIndex) { throw new S.NotImplementedException("use CopyToAsync"); }
-        bool G.ICollection<N>.Remove(N item) { throw new S.NotImplementedException("use RemoveAsync"); }
-        C.IEnumerator C.IEnumerable.GetEnumerator() { throw new S.NotImplementedException("use GetAsyncEnumerator"); }
-
+        public IValueAsyncEnumerator<N> GetAsyncEnumerator()
+        {
+            return new NodeEnumAsync<N>(this);
+        }
     }
 }

@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
+using ZBrad.AsyncLib.Collections;
 
 namespace ZBrad.AsyncLib
 {
@@ -14,7 +15,7 @@ namespace ZBrad.AsyncLib
     public sealed class BinarySemaphore
     {
         SpinLock spinner = new SpinLock();
-        NodeList<Waiter<bool>> waiters = new NodeList<Waiter<bool>>();
+        LinkedList<Waiter<bool>> waiters = new LinkedList<Waiter<bool>>();
 
         public bool IsLocked { get; private set; }
 
@@ -23,7 +24,9 @@ namespace ZBrad.AsyncLib
         public Task<bool> WaitAsync(CancellationToken token)
         {
             if (token.IsCancellationRequested)
-                return TaskEx.CancelledBool;
+            {
+                return TaskEx.FaultedBool;
+            }
 
             return wait(token);
         }
@@ -58,9 +61,6 @@ namespace ZBrad.AsyncLib
                 return false;
 
             bool hasLock = await waiter;
-            if (token.IsCancellationRequested)
-                token.ThrowIfCancellationRequested();
-
             return hasLock;
         }
 
@@ -78,7 +78,6 @@ namespace ZBrad.AsyncLib
                     spinner.Exit(false);
             }
 
-            // complete (cancel) waiter outside of spinlock
             w.Completed(false);
         }
 

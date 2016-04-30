@@ -30,9 +30,9 @@ namespace Tests
         {
             var test = getTest();
             test.Insert_001();
-            test.List.Remove((ItemNode<int>)test.List.Tail.Prev);
-            Assert.AreEqual<ItemNode<int>>(test.Values[0], (ItemNode<int>)test.List.Head);
-            Assert.AreEqual<ItemNode<int>>(test.Values[1], (ItemNode<int>)test.List.Head.Next);
+            test.List.Remove(test.List.Tail.Prev.Value);
+            Assert.AreEqual<int>(test.Values[0], test.List.Head.Value);
+            Assert.AreEqual<int>(test.Values[1], test.List.Head.Next.Value);
         }
 
         [TestMethod]
@@ -45,15 +45,13 @@ namespace Tests
             int[] indexes = { 0, 0, 1 };
             foreach (var item in test.List)
             {
-                Assert.AreEqual<ItemNode<int>>(test.Values[indexes[index++]], item);
+                Assert.AreEqual<int>(test.Values[indexes[index++]], item);
             }
         }
 
-        ListTest<ItemNode<int>> getTest()
+        ListTest<int> getTest()
         {
-            return new ListTest<ItemNode<int>>(5,
-                (i) => new ItemNode<int> { Item = (int) i },
-                (t) => new ItemNode<int> { Item = t.Item });
+            return new ListTest<int>(() => new int[5], (x) => x);
         }
     }
 }

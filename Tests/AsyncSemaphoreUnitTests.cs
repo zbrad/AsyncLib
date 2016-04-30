@@ -46,8 +46,7 @@ namespace Tests
 
             Assert.AreEqual<int>(0, semaphore.WaitCount);
             Assert.IsTrue(task0.IsCompleted);
-            Assert.IsTrue(task0.IsCanceled);
-            Assert.IsFalse(task0.IsFaulted);
+            Assert.IsTrue(task0.IsFaulted);
         }
 
         [TestMethod]
@@ -58,18 +57,20 @@ namespace Tests
                 var semaphore = new BinarySemaphore();
                 Assert.IsFalse(semaphore.IsLocked);
                 Assert.AreEqual<int>(0, semaphore.WaitCount);
+
                 var task0 = semaphore.WaitAsync();
                 var result0 = await task0;
                 Assert.IsTrue(result0);
                 var id0 = task0.Id;
                 Console.WriteLine("task0 id0=" + id0);
 
-                var cts = new CancellationTokenSource();
-                var task1 = semaphore.WaitAsync(cts.Token);
+                var cts1 = new CancellationTokenSource();
+                var task1 = semaphore.WaitAsync(cts1.Token);
                 Assert.IsFalse(task1.IsCompleted);
                 var id1 = task1.Id;
                 Console.WriteLine("task1 id1=" + id1);
 
+                // no token for task2
                 var task2 = semaphore.WaitAsync();
                 Assert.IsFalse(task2.IsCompleted);
                 var id2 = task2.Id;
@@ -79,9 +80,13 @@ namespace Tests
                 Assert.AreEqual<int>(2, semaphore.WaitCount);
 
                 // cancel the first waiter
-                cts.Cancel();
-            
-                try { await task1; }
+                cts1.Cancel();
+
+                try
+                {
+                    // for for it to throw
+                    await task1;
+                }
                 catch (Exception e)
                 {
                     Assert.IsInstanceOfType(e, typeof(OperationCanceledException));

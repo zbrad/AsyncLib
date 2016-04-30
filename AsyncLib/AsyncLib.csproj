@@ -41,27 +41,27 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Public\Classes\WaitList.cs" />
-    <Compile Include="Public\Interfaces\IList.cs" />
-    <Compile Include="Public\Classes\BinarySemaphore.cs" />
-    <Compile Include="Public\Interfaces\IWaitable.cs" />
-    <Compile Include="Public\Interfaces\INode.cs" />
-    <Compile Include="Public\Interfaces\IQueue.cs" />
-    <Compile Include="Internal\IValue.cs" />
-    <Compile Include="Internal\NodeCollection.cs" />
-    <Compile Include="Internal\NodeList.cs" />
-    <Compile Include="Internal\NodesEnum.cs" />
-    <Compile Include="Internal\NodesEnumAsync.cs" />
-    <Compile Include="Internal\NodeListOrdered.cs" />
-    <Compile Include="Internal\NodeQueueOrdered.cs" />
-    <Compile Include="Internal\Ordered.cs" />
-    <Compile Include="Public\Classes\Queue.cs" />
-    <Compile Include="Public\Classes\TaskEx.cs" />
+    <Compile Include="Nodes\INode.cs" />
+    <Compile Include="Nodes\IValue.cs" />
+    <Compile Include="Nodes\Node.cs" />
+    <Compile Include="Nodes\NodeEnum.cs" />
+    <Compile Include="Public\Extensions.cs" />
+    <Compile Include="Public\WaitList.cs" />
+    <Compile Include="Collections\ILinkedList.cs" />
+    <Compile Include="Public\BinarySemaphore.cs" />
+    <Compile Include="Public\IWaitable.cs" />
+    <Compile Include="Links\ILink.cs" />
+    <Compile Include="Nodes\NodeCollection.cs" />
+    <Compile Include="Collections\LinkedList.cs" />
+    <Compile Include="Nodes\NodeEnumAsync.cs" />
+    <Compile Include="Collections\OrderedLinkedList.cs" />
+    <Compile Include="Collections\OrderedQueue.cs" />
+    <Compile Include="Public\TaskEx.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Internal\NodeQueue.cs" />
-    <Compile Include="Public\Classes\AwaitLock.cs" />
-    <Compile Include="Public\Classes\Waiter.cs" />
-    <Compile Include="Public\Classes\WaitQueue.cs" />
+    <Compile Include="Collections\Queue.cs" />
+    <Compile Include="Public\AwaitLock.cs" />
+    <Compile Include="Public\Waiter.cs" />
+    <Compile Include="Public\WaitQueue.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

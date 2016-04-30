@@ -55,7 +55,6 @@
   <ItemGroup>
     <Compile Include="AssertEx.cs" />
     <Compile Include="AsyncSemaphoreUnitTests.cs" />
-    <Compile Include="ItemNode.cs" />
     <Compile Include="NodeQueueOrderedTests.cs" />
     <Compile Include="NodeQueueComparableTests.cs" />
     <Compile Include="NodeQueueTests.cs" />

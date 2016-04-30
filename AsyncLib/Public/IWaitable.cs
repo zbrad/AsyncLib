@@ -12,6 +12,7 @@ namespace ZBrad.AsyncLib
         Task<bool> IsCompleteAsync();
         Task<bool> IsCompleteAsync(CancellationToken token);
 
-        void EndEnqueue();
+        Task EndEnqueueAsync();
+        Task EndEnqueueAsync(CancellationToken token);
     }
 }

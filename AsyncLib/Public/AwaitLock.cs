@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Threading;
+using ZBrad.AsyncLib;
 
 namespace ZBrad.AsyncLib
 {
@@ -39,7 +40,7 @@ namespace ZBrad.AsyncLib
 
         BinarySemaphore sem = new BinarySemaphore();
         Task<Releaser> releaser;
-        static Task<Releaser> cancelledReleaser;
+        static Task<Releaser> emptyReleaser;
 
         public AwaitLock()
         {
@@ -48,17 +49,22 @@ namespace ZBrad.AsyncLib
 
         static AwaitLock()
         {
-            cancelledReleaser = Task.FromResult<Releaser>(new Releaser(null));
+            emptyReleaser = Task.FromResult<Releaser>(new Releaser(null));
         }
 
         public Task<Releaser> WaitAsync(CancellationToken token)
         {
+            token.ThrowIfCancellationRequested();
+
             Task<bool> t = sem.WaitAsync(token);
+
+            // test for synchronous completion
             if (t.IsCompleted)
             {
+                // if we had the lock, we'll release it at dispose
                 if (t.Result)
                     return this.releaser;
-                return cancelledReleaser;
+                return emptyReleaser;
             }
 
             var r = t.ContinueWith<Releaser>(lockComplete, this, token, TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
@@ -70,9 +76,6 @@ namespace ZBrad.AsyncLib
             try
             {
                 var releaser = await t;
-                if (token.IsCancellationRequested)
-                    token.ThrowIfCancellationRequested();
-
                 return releaser;
             }
             catch (TaskCanceledException e)
