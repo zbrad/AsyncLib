@@ -3,15 +3,18 @@ using System.Runtime.CompilerServices;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using ZBrad.AsyncLib.Links;
 using ZBrad.AsyncLib.Nodes;
 
 namespace ZBrad.AsyncLib
 {
     public delegate void CancelEvent<T>(Waiter<T> w);
 
-    public class Waiter<T> : ICriticalNotifyCompletion, IDisposable, IEquatable<Waiter<T>>
+    public class Waiter<T> : ILink, ICriticalNotifyCompletion, IDisposable, IEquatable<Waiter<T>>
     {
+        public ILink Prev { get; set; }
+
+        public ILink Next { get; set; }
+
         static long sequence = 0;
         static readonly CancellationTokenRegistration EmptyRegistration = default(CancellationTokenRegistration);
         Action nextAction = null;
@@ -19,15 +22,14 @@ namespace ZBrad.AsyncLib
 
         CancellationTokenRegistration userTokenReg;
         CancellationTokenRegistration waiterTokenReg;
-        CancellationTokenSource cts = new CancellationTokenSource();
 
-        public CancellationToken Token { get { return cts.Token; } }
+        T result;
 
         public long Id { get { return id; } }
 
         public bool IsCompleted { get; private set; }
 
-        public T Result { get; private set; }
+//        public T Result { get; private set; }
 
         public bool IsCancelled { get; private set; }
 
@@ -35,7 +37,7 @@ namespace ZBrad.AsyncLib
 
         Waiter() 
         {
-            this.Result = default(T);
+            this.result = default(T);
             this.IsCompleted = false;
             this.IsCancelled = false;
         }
@@ -46,8 +48,6 @@ namespace ZBrad.AsyncLib
 
             if (token != CancellationToken.None)
                 userTokenReg = token.Register(this.onUserCancel, token, true);
-
-            waiterTokenReg = cts.Token.Register(this.onWaiterCancel, cts.Token, true);
         }
 
         public bool Equals(Waiter<T> other)
@@ -73,39 +73,37 @@ namespace ZBrad.AsyncLib
 
         void onUserCancel(object otoken)
         {
-            this.Cancel();
-        }
+            // if we have already completed, then we ignore the cancel
+            if (IsCompleted)
+                return;
 
-        void onWaiterCancel(object otoken)
-        {
             IsCancelled = true;
             IsCompleted = true;
 
             var cancel = this.OnCancel;
             if (cancel != null)
                 cancel(this);
+
+            Task.Run(this.nextAction);
         }
 
         public void Completed(T result)
         {
-            this.Result = result; 
+            this.result = result; 
             this.IsCompleted = true;
-            this.nextAction();
-        }
 
-        public void Cancel()
-        {
-            // if we have already completed, then we ignore the cancel
-            if (IsCompleted)
-                return;
-
-            // signal cancel to anyone we used
-            cts.Cancel();
+            Task.Run(this.nextAction);
         }
 
         public Waiter<T> GetAwaiter() { return this; }
 
-        public T GetResult() { return this.Result; }
+        public T GetResult()
+        {
+            if (this.IsCancelled)
+                throw new OperationCanceledException("waiter cancelled");
+
+            return result;
+        }
 
         [SecurityCritical]
         void ICriticalNotifyCompletion.UnsafeOnCompleted(Action continuation)

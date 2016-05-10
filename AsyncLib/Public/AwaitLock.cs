@@ -13,7 +13,7 @@ namespace ZBrad.AsyncLib
     /// 
     /// method()
     /// {
-    ///   using(await foo.WaitAsync())
+    ///   using(await foo.Wait(token))
     ///   {
     ///       // foo is locked during the scope of "using"
     ///   }
@@ -21,26 +21,13 @@ namespace ZBrad.AsyncLib
     /// }
     /// </code>
     /// </summary>
-    public class AwaitLock
+    public sealed class AwaitLock
     {
-        public struct Releaser : IDisposable
-        {
-            readonly AwaitLock locked;
-            internal Releaser(AwaitLock b)
-            {
-                locked = b;
-            }
-
-            void IDisposable.Dispose()
-            {
-                if (locked != null)
-                    locked.sem.Release();
-            }
-        }
+        static Task<Releaser> emptyReleaser;
+        static Task<Releaser> faultReleaser = TaskEx.CancelFault<Releaser>();
 
         BinarySemaphore sem = new BinarySemaphore();
         Task<Releaser> releaser;
-        static Task<Releaser> emptyReleaser;
 
         public AwaitLock()
         {
@@ -52,11 +39,12 @@ namespace ZBrad.AsyncLib
             emptyReleaser = Task.FromResult<Releaser>(new Releaser(null));
         }
 
-        public Task<Releaser> WaitAsync(CancellationToken token)
+        public Task<Releaser> Wait(CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
+            if (token.IsCancellationRequested)
+                return faultReleaser;
 
-            Task<bool> t = sem.WaitAsync(token);
+            Task<bool> t = sem.Wait(token);
 
             // test for synchronous completion
             if (t.IsCompleted)
@@ -97,10 +85,19 @@ namespace ZBrad.AsyncLib
             return new Releaser(u);
         }
 
-        public Task<Releaser> WaitAsync()
+        public struct Releaser : IDisposable
         {
-            return this.WaitAsync(CancellationToken.None);
-        }
+            readonly AwaitLock locked;
+            internal Releaser(AwaitLock b)
+            {
+                locked = b;
+            }
 
+            void IDisposable.Dispose()
+            {
+                if (locked != null)
+                    locked.sem.Release();
+            }
+        }
     }
 }

@@ -15,17 +15,17 @@ namespace ZBrad.AsyncLib
     public sealed class BinarySemaphore
     {
         SpinLock spinner = new SpinLock();
-        LinkedList<Waiter<bool>> waiters = new LinkedList<Waiter<bool>>();
+        LinkList<Waiter<bool>> waiters = new LinkList<Waiter<bool>>();
 
         public bool IsLocked { get; private set; }
 
         public int WaitCount { get { return waiters.Count; } }
 
-        public Task<bool> WaitAsync(CancellationToken token)
+        public Task<bool> Wait(CancellationToken token)
         {
             if (token.IsCancellationRequested)
             {
-                return TaskEx.FaultedBool;
+                return TaskEx.CancelFaultBool;
             }
 
             return wait(token);
@@ -61,6 +61,7 @@ namespace ZBrad.AsyncLib
                 return false;
 
             bool hasLock = await waiter;
+            token.ThrowIfCancellationRequested();
             return hasLock;
         }
 
@@ -79,11 +80,6 @@ namespace ZBrad.AsyncLib
             }
 
             w.Completed(false);
-        }
-
-        public Task<bool> WaitAsync()
-        {
-            return this.WaitAsync(CancellationToken.None);
         }
 
         public void Release()

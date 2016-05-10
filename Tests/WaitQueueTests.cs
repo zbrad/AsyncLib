@@ -4,7 +4,6 @@ using System.Diagnostics.CodeAnalysis;
 using ZBrad.AsyncLib;
 using System.Threading;
 using System.Threading.Tasks;
-using ZBrad.AsyncLib.Nodes;
 
 namespace Tests
 {
@@ -12,6 +11,7 @@ namespace Tests
     [TestClass]
     public class WaitQueueTests
     {
+        static CancellationToken none = CancellationToken.None;
         int item0 = 1000;
         int item1 = 2000;
 
@@ -19,33 +19,33 @@ namespace Tests
         public void IsEmpty_WhenEmpty_IsTrue()
         {
             var queue = new WaitQueue<int>();
-            Assert.IsTrue(queue.IsEmptyAsync().ResultEx());
+            Assert.IsTrue(queue.IsEmpty(none).ResultEx());
         }
 
         [TestMethod]
         public void IsEmpty_WithOneItem_IsFalse()
         {
             var queue = new WaitQueue<int>();
-            queue.EnqueueAsync(item0).WaitEx();
-            Assert.IsFalse(queue.IsEmptyAsync().ResultEx());
+            queue.Enqueue(item0, none).WaitEx();
+            Assert.IsFalse(queue.IsEmpty(none).ResultEx());
         }
 
         [TestMethod]
         public void IsEmpty_WithTwoItems_IsFalse()
         {
             var queue = new WaitQueue<int>();
-            queue.EnqueueAsync(item0).WaitEx();
-            queue.EnqueueAsync(item1).WaitEx();
-            Assert.IsFalse(queue.IsEmptyAsync().ResultEx());
+            queue.Enqueue(item0, none).WaitEx();
+            queue.Enqueue(item1, none).WaitEx();
+            Assert.IsFalse(queue.IsEmpty(none).ResultEx());
         }
 
         [TestMethod]
         public void Dequeue_WaitWithEnqCompletes_CompletesTask()
         {
             var queue = new WaitQueue<int>();
-            var task0 = queue.DequeueAsync();
+            var task0 = queue.Dequeue(none);
             Assert.IsFalse(task0.IsCompleted);
-            var task1 = queue.EnqueueAsync(item0);
+            var task1 = queue.Enqueue(item0, none);
             task1.WaitEx();
             task0.WaitEx();
             Assert.IsTrue(task1.IsCompleted);
@@ -59,13 +59,13 @@ namespace Tests
             Test.Async(async () =>
             {
                 var queue = new WaitQueue<int>();
-                var task1 = queue.EnqueueAsync(item0);
-                var task2 = queue.EnqueueAsync(item1);
+                var task1 = queue.Enqueue(item0, none);
+                var task2 = queue.Enqueue(item1, none);
                 await task1;
-                var deq0 = await queue.DequeueAsync();
+                var deq0 = await queue.Dequeue(none);
                 Assert.AreEqual<int>(item0, deq0);
                 await task2;
-                Assert.AreEqual<int>(item1, await queue.PeekHeadAsync());
+                Assert.AreEqual<int>(item1, await queue.Peek(none));
             });
         }
 
@@ -73,10 +73,10 @@ namespace Tests
         public void Dequeue_WithResult_CompletesWithResult()
         {
             var queue = new WaitQueue<int>();
-            var task = queue.EnqueueAsync(item0);
+            var task = queue.Enqueue(item0, none);
             Test.Async(async () =>
             {
-                var result0 = await queue.DequeueAsync();
+                var result0 = await queue.Dequeue(none);
                 Assert.AreEqual<int>(item0, result0);
             });
         }
@@ -85,8 +85,8 @@ namespace Tests
         public void Dequeue_WithoutResult_CompletesWithDefaultResult()
         {
             var queue = new WaitQueue<int>();
-            var task0 = queue.EnqueueAsync(item0);
-            var result = queue.DequeueAsync().ResultEx();
+            var task0 = queue.Enqueue(item0, none);
+            var result = queue.Dequeue(none).ResultEx();
             task0.Wait();
             Assert.AreEqual<int>(item0, result);
         }
@@ -95,25 +95,25 @@ namespace Tests
         public void Dequeue_EndEnqueue_IsComplete()
         {
             var queue = new WaitQueue<int>();
-            var task1 = queue.EnqueueAsync(item0);
-            var task2 = queue.EnqueueAsync(item1);
+            var task1 = queue.Enqueue(item0, none);
+            var task2 = queue.Enqueue(item1, none);
 
             Test.Async(async () =>
             {
                 await task1;
                 await task2;
-                Assert.IsFalse(await queue.IsEmptyAsync());
-                Assert.IsFalse(await queue.IsCompleteAsync());
-                Assert.IsFalse(await queue.IsEndedAsync());
-                await queue.EndEnqueueAsync();
-                Assert.IsTrue(await queue.IsEndedAsync());
-                Assert.IsFalse(await queue.IsEmptyAsync());
-                Assert.IsFalse(await queue.IsCompleteAsync());
+                Assert.IsFalse(await queue.IsEmpty(none));
+                Assert.IsFalse(await queue.IsComplete(none));
+                Assert.IsFalse(await queue.IsEnded(none));
+                await queue.EndEnqueue(none);
+                Assert.IsTrue(await queue.IsEnded(none));
+                Assert.IsFalse(await queue.IsEmpty(none));
+                Assert.IsFalse(await queue.IsComplete(none));
                 while (queue.Count > 0)
-                    await queue.DequeueAsync();
-                Assert.IsTrue(await queue.IsCompleteAsync());
-                Assert.IsTrue(await queue.IsEmptyAsync());
-                Assert.IsTrue(await queue.IsEndedAsync());
+                    await queue.Dequeue(none);
+                Assert.IsTrue(await queue.IsComplete(none));
+                Assert.IsTrue(await queue.IsEmpty(none));
+                Assert.IsTrue(await queue.IsEnded(none));
             });
 
             Assert.IsTrue(task1.IsCompleted);
@@ -121,7 +121,7 @@ namespace Tests
         }
 
         [TestMethod]
-        public void Enqueue_Cancel()
+        public void Cancelled_Enqueue()
         {
             var wq = new WaitQueue<int>();
             var queue = wq;
@@ -129,9 +129,9 @@ namespace Tests
             Test.Async(async () =>
             {
                 // gets internal releaser for wait queue
-                var releaser = (IDisposable)await wq.Locker.WaitAsync();
+                var releaser = (IDisposable)await wq.Lock.Wait(none);
 
-                var task = queue.EnqueueAsync(item0, cts.Token); // will block waiting for releaser
+                var task = queue.Enqueue(item0, cts.Token); // will block waiting for releaser
                 Assert.IsFalse(task.IsCompleted);
 
                 cts.Cancel();  // now cancel enqueue while it's blocked
@@ -140,7 +140,7 @@ namespace Tests
                 // clear the internal lock
                 releaser.Dispose();
 
-                Assert.IsTrue(await queue.IsEmptyAsync());
+                Assert.IsTrue(await queue.IsEmpty(none));
                 Assert.IsTrue(task.IsCanceled);
             });
         }
@@ -150,39 +150,44 @@ namespace Tests
         {
             var queue = new WaitQueue<int>();
             var cts = new CancellationTokenSource();
-            var task = queue.DequeueAsync(cts.Token);
+            var task0 = queue.Dequeue(cts.Token);
 
-            Test.Async(async () =>
+            Task.Run(async () =>
             {
-                await Task.Delay(2);
+                // wait until dequeue request gets on waitlist
+                while (queue.WaitCount == 0)
+                    await Task.Delay(10);
                 Assert.AreEqual<int>(1, queue.WaitCount);
-                cts.Cancel();
-                await AssertEx.ThrowsExceptionAsync<OperationCanceledException>(task);
-                Assert.IsTrue(await queue.IsEmptyAsync());
-            });
+            }).GetAwaiter().GetResult();
+
+            cts.Cancel();
+            AssertEx.ThrowsExceptionAsync<OperationCanceledException>(task0).GetAwaiter().GetResult();
+            var isEmpty = queue.IsEmpty(none).GetAwaiter().GetResult();
+            Assert.IsTrue(isEmpty);
         }
 
         [TestMethod]
-        public void Cancelled_BeforeEnqueue_SynchronouslyFaultsTask()
+        public void Cancelled_BeforeEnqueue_Faults()
         {
             var queue = new WaitQueue<int>();
             var cts = new CancellationTokenSource();
             cts.Cancel();
-            var task = queue.EnqueueAsync(item0, cts.Token);
-            Assert.
+            var task = queue.Enqueue(item0, cts.Token);
+            AssertEx.ThrowsExceptionAsync<OperationCanceledException>(task).GetAwaiter().GetResult();
             Assert.IsTrue(task.IsCanceled);
-            Assert.IsTrue(queue.IsEmptyAsync().ResultEx());
+            Assert.IsTrue(queue.IsEmpty(none).ResultEx());
         }
 
         [TestMethod]
-        public void Cancelled_BeforeEnqueue_RemovesTaskFromQueue()
+        public void Cancelled_BeforeDequeue_Faults()
         {
             var queue = new WaitQueue<int>();
             var cts = new CancellationTokenSource();
             cts.Cancel();
-            var task = queue.DequeueAsync(cts.Token);
+            var task = queue.Dequeue(cts.Token);
+            AssertEx.ThrowsExceptionAsync<OperationCanceledException>(task).GetAwaiter().GetResult();
             Assert.IsTrue(task.IsCanceled);
-            Assert.IsTrue(queue.IsEmptyAsync().ResultEx());
+            Assert.IsTrue(queue.IsEmpty(none).ResultEx());
         }
 
     }

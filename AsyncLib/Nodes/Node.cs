@@ -3,61 +3,68 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using ZBrad.AsyncLib.Links;
 using System.Threading;
 
-namespace ZBrad.AsyncLib.Nodes
+namespace ZBrad.AsyncLib
 {
-    internal interface IComparableNode<T> : INode<T>, IComparable<INode<T>> where T : IComparable<T>
+    public abstract class Value<T> : Node<T>, IEquatable<Value<T>>, IComparable<Value<T>> where T : IEquatable<T>,IComparable<T>
     {
+        public Value() : this(default(T)) { }
 
-    }
+        public Value(T item) : base(item) { }
 
-    internal class ComparableNode<T> : Node<T>, IComparableNode<T> where T : IComparable<T>
-    {
-        public int CompareTo(INode<T> other)
+        public int CompareTo(Value<T> other)
         {
-            return this.Value.CompareTo(other.Value);
+            return this.Item.CompareTo(other.Item);
+        }
+
+        public bool Equals(Value<T> other)
+        {
+            return base.Equals((Node<T>)other);
         }
     }
 
-    internal class Node<T> : INode<T>
+    public abstract class Node<T> : ILink, IEquatable<Node<T>> where T : IEquatable<T>
     {
-        static long NodeSeq = 0;
+        static long seq = 0;
 
         public Node() : this(default(T)) { }
 
-        public Node(T value)
+        public Node(T item)
         {
-            this.Value = value;
-            id = Interlocked.Increment(ref NodeSeq);
+            this.Item = item;
+            id = Interlocked.Increment(ref seq);
         }
 
         public ILink Prev { get; set; }
-
         public ILink Next { get; set; }
 
-        public T Value { get; set; }
+        public T Item { get; set; }
 
         long id = 0;
         public long Id { get { return id; } }
 
         public override string ToString()
         {
-            return "{ id=" + id + ", value=" + this.Value.ToString() + "}";
+            return "{ id=" + id + ", value=" + this.Item.ToString() + "}";
         }
 
-        public bool Equals(INode<T> other)
+        public bool Equals(Node<T> other)
         {
             if (other == null)
                 return false;
 
-            return this.Value.Equals(other.Value);
+            return this.Item.Equals(other.Item);
         }
 
-        public bool Equals(ILink other)
+        public override bool Equals(object obj)
         {
-            return Equals(other as INode<T>);
+            return this.Equals(obj as Node<T>);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.Item.GetHashCode();
         }
     }
 }

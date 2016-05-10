@@ -5,14 +5,9 @@ namespace ZBrad.AsyncLib
 {
     public interface IWaitable
     {
-        Task<bool> IsEndedAsync();
-        Task<bool> IsEndedAsync(CancellationToken token);
-        Task<bool> IsEmptyAsync();
-        Task<bool> IsEmptyAsync(CancellationToken token);
-        Task<bool> IsCompleteAsync();
-        Task<bool> IsCompleteAsync(CancellationToken token);
-
-        Task EndEnqueueAsync();
-        Task EndEnqueueAsync(CancellationToken token);
+        Task<bool> IsEnded(CancellationToken token);
+        Task<bool> IsEmpty(CancellationToken token);
+        Task<bool> IsComplete(CancellationToken token);
+        Task EndEnqueue(CancellationToken token);
     }
 }

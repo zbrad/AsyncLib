@@ -9,6 +9,6 @@ internal static class Test
 {
     public static void Async(Func<Task> test)
     {
-        test().Wait();
+        test().GetAwaiter().GetResult();
     }
 }
