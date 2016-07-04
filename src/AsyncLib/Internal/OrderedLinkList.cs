@@ -5,7 +5,7 @@ using ZBrad.AsyncLib.Nodes;
 
 namespace ZBrad.AsyncLib.Collections
 {
-    public class OrderedLinkList<T> : LinkList<T> where T : ILink, IEquatable<T>, IComparable<T>
+    internal class OrderedLinkList<T> : LinkList<T> where T : ILink, IEquatable<T>, IComparable<T>
     {
         class ItemComparer : G.IComparer<T>
         {

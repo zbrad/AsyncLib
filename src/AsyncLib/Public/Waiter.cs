@@ -7,7 +7,7 @@ using ZBrad.AsyncLib.Nodes;
 
 namespace ZBrad.AsyncLib
 {
-    public delegate void CancelEvent<T>(Waiter<T> w);
+    internal delegate void CancelEvent<T>(Waiter<T> w);
 
     public class Waiter<T> : ILink, ICriticalNotifyCompletion, IDisposable, IEquatable<Waiter<T>>
     {
@@ -29,11 +29,9 @@ namespace ZBrad.AsyncLib
 
         public bool IsCompleted { get; private set; }
 
-//        public T Result { get; private set; }
-
         public bool IsCancelled { get; private set; }
 
-        public event CancelEvent<T> OnCancel;
+        internal event CancelEvent<T> OnCancel;
 
         Waiter() 
         {

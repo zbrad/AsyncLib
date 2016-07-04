@@ -6,12 +6,6 @@ using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib.Collections
 {
-    public interface ITry<T>
-    {
-        bool Result { get; }
-        T Value { get; }
-    }
-
     internal class Try<T> : ITry<T>
     {
         public static Try<T> False = new Try<T> { Result = false };

@@ -1,0 +1,110 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{392DC29B-F76D-49DD-91E5-F0615699906B}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>ZBrad.AsyncLib</RootNamespace>
+    <AssemblyName>ZBrad.AsyncLib</AssemblyName>
+    <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <TargetFrameworkProfile />
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Net.Http" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Interfaces\ICollectionEx.cs" />
+    <Compile Include="Interfaces\IQueue.cs" />
+    <Compile Include="Interfaces\ITry.cs" />
+    <Compile Include="Internal\IAsyncLinkQueue.cs" />
+    <Compile Include="Interfaces\IAsyncList.cs" />
+    <Compile Include="Internal\AsyncLinkList.cs" />
+    <Compile Include="Internal\AsyncList.cs" />
+    <Compile Include="Interfaces\ILinkQueue.cs" />
+    <Compile Include="Internal\AsyncQueue.cs" />
+    <Compile Include="Internal\IAsyncQueue.cs" />
+    <Compile Include="Interfaces\IAsyncCollection.cs" />
+    <Compile Include="Interfaces\ILinkList.cs" />
+    <Compile Include="Internal\LinkList.cs" />
+    <Compile Include="_archive\Locker.cs" />
+    <Compile Include="_archive\LockerListLinks.cs" />
+    <Compile Include="Internal\AsyncLinkQueue.cs" />
+    <Compile Include="Internal\Try.cs" />
+    <Compile Include="_archive\EnumeratorLinksAsync.cs" />
+    <Compile Include="Internal\LinkQueue.cs" />
+    <Compile Include="Interfaces\INode.cs" />
+    <Compile Include="Internal\Node.cs" />
+    <Compile Include="Public\Extensions.cs" />
+    <Compile Include="Public\BinarySemaphore.cs" />
+    <Compile Include="Public\IWaitable.cs" />
+    <Compile Include="Interfaces\ILink.cs" />
+    <Compile Include="_archive\Links.cs" />
+    <Compile Include="Internal\OrderedLinkList.cs" />
+    <Compile Include="Internal\OrderedLinkQueue.cs" />
+    <Compile Include="Public\TaskEx.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Public\AwaitLock.cs" />
+    <Compile Include="Public\Waiter.cs" />
+    <Compile Include="Public\WaitQueue.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <!--
+    <PostBuildEvent>"$(SolutionDir).nuget\nuget" pack "$(ProjectDir)AsyncLib.nuspec" -verbosity detailed -OutputDirectory "$(TargetDir)." -BasePath "$(TargetDir)."</PostBuildEvent>
+    -->
+  </PropertyGroup>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+  <Target Name="AfterBuild">
+    <ItemGroup>
+      <NuFile Include="$(SolutionDir)\packages\**\nuget.exe" />
+    </ItemGroup>
+    <PropertyGroup>
+      <NuGet>%(NuFile.FullPath)</NuGet>
+    </PropertyGroup>
+    <Message Text="test path $(NuGet)" />
+    <Exec Command="&quot;$(NuGet)&quot; pack &quot;$(ProjectPath)&quot; -OutputDirectory &quot;$(TargetDir).&quot; -BasePath &quot;$(TargetDir).&quot;" LogStandardErrorAsError="true" />
+    <ItemGroup>
+      <Packages Include="$(TargetDir)$(TargetName)*.nupkg" />
+    </ItemGroup>
+    <Message Text="packages: @(Packages)" />
+    <Copy SourceFiles="@(Packages)" DestinationFolder="c:\LocalNuGet" Condition="Exists('c:\LocalNuGet')" />
+  </Target>
+</Project>

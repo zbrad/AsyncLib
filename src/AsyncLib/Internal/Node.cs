@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace ZBrad.AsyncLib
 {
-    public abstract class Value<T> : Node<T>, IEquatable<Value<T>>, IComparable<Value<T>> where T : IEquatable<T>,IComparable<T>
+    internal abstract class Value<T> : Node<T>, IEquatable<Value<T>>, IComparable<Value<T>> where T : IEquatable<T>,IComparable<T>
     {
         public Value() : this(default(T)) { }
 

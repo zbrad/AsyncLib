@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib.Collections
 {
-    public class LinkQueue<T> : ILinkQueue<T> where T : ILink, IEquatable<T>
+    internal class LinkQueue<T> : ILinkQueue<T> where T : ILink, IEquatable<T>
     {
         LinkList<T> list;
 

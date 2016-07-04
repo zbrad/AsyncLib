@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace ZBrad.AsyncLib.Collections
 {
-    public class AsyncLinkList<T> : IAsyncLinkList<T> where T : ILink, IEquatable<T>
+    internal class AsyncLinkList<T> : IAsyncLinkList<T> where T : ILink, IEquatable<T>
     {
         LinkList<T> list;
 

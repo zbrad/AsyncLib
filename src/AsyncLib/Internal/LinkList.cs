@@ -8,7 +8,7 @@ using System.Collections;
 
 namespace ZBrad.AsyncLib.Collections
 {
-    public class LinkList<T> : ILinkList<T> where T : ILink, IEquatable<T>
+    internal class LinkList<T> : ILinkList<T> where T : ILink, IEquatable<T>
     {
         ILink root;
         long version;
