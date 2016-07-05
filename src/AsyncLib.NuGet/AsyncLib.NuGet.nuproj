@@ -10,6 +10,9 @@
       <Platform>AnyCPU</Platform>
     </ProjectConfiguration>
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AsyncLib\AsyncLib.csproj" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>e95a80a0-3d65-4891-92ca-339eebb3b8b0</ProjectGuid>
   </PropertyGroup>
@@ -30,15 +33,13 @@
     <Description>tbs</Description>
     <ReleaseNotes>
     </ReleaseNotes>
-    <LicenseUrl>https://github.com/zbrad/AsyncLib/LICENSE</LicenseUrl>
+    <LicenseUrl>https://github.com/zbrad/AsyncLib/LICENSE
+</LicenseUrl>
     <ProjectUrl>https://github.com/zbrad/AsyncLib
 </ProjectUrl>
     <IconUrl>https://github.com/zbrad/AsyncLib/ZBrad.png</IconUrl>
     <Copyright>Copyright © ZBrad LLC</Copyright>
     <Tags>async</Tags>
   </PropertyGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\AsyncLib\AsyncLib.csproj" />
-  </ItemGroup>
   <Import Project="$(NuProjPath)\NuProj.targets" />
 </Project>
