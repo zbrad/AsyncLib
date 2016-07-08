@@ -1,9 +1,9 @@
 <?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
   <metadata>
-    <id>ZBrad.AsyncLib.NetCore10</id>
-    <version>1.0.0-beta</version>
-    <title>ZBrad.AsyncLib.NetCore10</title>
+    <id>ZBrad.AsyncLib</id>
+    <version>1.0.2-beta</version>
+    <title>ZBrad.AsyncLib</title>
     <authors>Brad Merrill</authors>
     <owners>Brad Merrill</owners>
     <licenseUrl>https://github.com/zbrad/AsyncLib/LICENSE</licenseUrl>
@@ -16,6 +16,9 @@
     <tags>async</tags>
   </metadata>
   <files>
-    <file src="D:\Repos\AsyncLib\src\AsyncLib (NetCore10)\bin\Release\netstandard1.6\AsyncLib (NetCore10).dll" target="lib\net451\AsyncLib (NetCore10).dll" exclude="" />
+    <!-- for each lib copy the full set of files -->
+    <file src="D:\Repos\AsyncLib\src\AsyncLib.Core\bin\Debug\netstandard1.6\AsyncLib.Core**" target="lib\dotnet" />
+    <file src="D:\Repos\AsyncLib\src\AsyncLib.Net\bin\Debug\AsyncLib.Net**" target="lib\net461" />
+    <file src="D:\Repos\AsyncLib\src\AsyncLib.Portable\bin\Debug\AsyncLib.Portable**" target="lib\portable-net45+win+wpa81" />
   </files>
 </package>

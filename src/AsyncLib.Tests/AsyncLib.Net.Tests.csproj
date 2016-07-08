@@ -7,7 +7,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Tests</RootNamespace>
-    <AssemblyName>Tests</AssemblyName>
+    <AssemblyName>AsyncLib.Net.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -72,9 +72,12 @@
     <WCFMetadata Include="Service References\" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\AsyncLib\AsyncLib.csproj">
-      <Project>{392dc29b-f76d-49dd-91e5-f0615699906b}</Project>
-      <Name>AsyncLib</Name>
+    <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AsyncLib.Net\AsyncLib.Net.csproj">
+      <Project>{e8e02462-53d6-4f81-b1b4-9b46d3bfd2f0}</Project>
+      <Name>AsyncLib.Net</Name>
     </ProjectReference>
   </ItemGroup>
   <Choose>

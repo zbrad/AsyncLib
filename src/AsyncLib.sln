@@ -9,7 +9,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncLib.Net", "AsyncLib.Ne
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncLib.Portable", "AsyncLib.Portable\AsyncLib.Portable.csproj", "{F531EBBB-5302-4A3F-98EB-09EBF585E2E6}"
 EndProject
-Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AspNet.Core", "AsyncLib.Core\AspNet.Core.xproj", "{6F16C085-01D9-425E-BD5D-A93687008352}"
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "AsyncLib.Core", "AsyncLib.Core\AsyncLib.Core.xproj", "{6F16C085-01D9-425E-BD5D-A93687008352}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AsyncLib.Net.Tests", "AsyncLib.Tests\AsyncLib.Net.Tests.csproj", "{D309CA02-481C-4E4F-A793-14AEBFB7B7E0}"
 EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
@@ -34,6 +36,10 @@ Global
 		{6F16C085-01D9-425E-BD5D-A93687008352}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6F16C085-01D9-425E-BD5D-A93687008352}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6F16C085-01D9-425E-BD5D-A93687008352}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D309CA02-481C-4E4F-A793-14AEBFB7B7E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D309CA02-481C-4E4F-A793-14AEBFB7B7E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D309CA02-481C-4E4F-A793-14AEBFB7B7E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D309CA02-481C-4E4F-A793-14AEBFB7B7E0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
