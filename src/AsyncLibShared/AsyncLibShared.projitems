@@ -1,0 +1,40 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <MSBuildAllProjects>$(MSBuildAllProjects);$(MSBuildThisFileFullPath)</MSBuildAllProjects>
+    <HasSharedItems>true</HasSharedItems>
+    <SharedGUID>857e06c7-3795-4089-80e5-8e8cd16a1331</SharedGUID>
+  </PropertyGroup>
+  <PropertyGroup Label="Configuration">
+    <Import_RootNamespace>AsyncLibShared</Import_RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\AwaitLock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\BinarySemaphore.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Extensions.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\IWaitable.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\TaskEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\Waiter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Classes\WaitQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAsyncCollection.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IAsyncList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ICollectionEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILink.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILinkList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ILinkQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\IQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Interfaces\ITry.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\AsyncLinkList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\AsyncLinkQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\AsyncList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\AsyncQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\IAsyncLinkQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\IAsyncQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\LinkList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\LinkQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\Node.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\OrderedLinkList.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\OrderedLinkQueue.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Internal\Try.cs" />
+  </ItemGroup>
+</Project>

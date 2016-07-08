@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/10/nuspec.xsd">
+  <metadata>
+    <id>ZBrad.AsyncLib.NetCore10</id>
+    <version>1.0.0-beta</version>
+    <title>ZBrad.AsyncLib.NetCore10</title>
+    <authors>Brad Merrill</authors>
+    <owners>Brad Merrill</owners>
+    <licenseUrl>https://github.com/zbrad/AsyncLib/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/zbrad/AsyncLib</projectUrl>
+    <iconUrl>https://github.com/zbrad/AsyncLib/ZBrad.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>Async aware collection classes.  Currently supports list, queue, ordered list, ordered queue, and wait queue (a blocking queue).</description>
+    <summary>ZBrad's Async Collections Library</summary>
+    <copyright>Copyright © ZBrad LLC</copyright>
+    <tags>async</tags>
+  </metadata>
+  <files>
+    <file src="D:\Repos\AsyncLib\src\AsyncLib (NetCore10)\bin\Release\netstandard1.6\AsyncLib (NetCore10).dll" target="lib\net451\AsyncLib (NetCore10).dll" exclude="" />
+  </files>
+</package>

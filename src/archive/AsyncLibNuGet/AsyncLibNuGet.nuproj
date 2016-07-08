@@ -1,0 +1,49 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>f80fc2da-94b5-401a-8af3-2894c2a6f3ec</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir Condition="'$(LocalNuGet)' != ''">$(LocalNuGet)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuProjPath Condition=" '$(NuProjPath)' == '' ">$(MSBuildExtensionsPath)\NuProj\</NuProjPath>
+  </PropertyGroup>
+  <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
+  <PropertyGroup Label="Configuration">
+    <Id>AsyncLibNuGet</Id>
+    <Version>1.0.0</Version>
+    <Title>AsyncLibNuGet</Title>
+    <Authors>brad_</Authors>
+    <Owners>brad_</Owners>
+    <Summary>AsyncLibNuGet</Summary>
+    <Description>AsyncLibNuGet</Description>
+    <ReleaseNotes>
+    </ReleaseNotes>
+    <ProjectUrl>
+    </ProjectUrl>
+    <LicenseUrl>
+    </LicenseUrl>
+    <Copyright>Copyright © brad_</Copyright>
+    <Tags>AsyncLibNuGet</Tags>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="Readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\AsyncLib.Core\AsyncLib.Core.xproj" />
+    <ProjectReference Include="..\AsyncLib.Net\AsyncLib.Net.csproj" />
+    <ProjectReference Include="..\AsyncLib.Portable\AsyncLib.Portable.csproj" />
+  </ItemGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
+</Project>

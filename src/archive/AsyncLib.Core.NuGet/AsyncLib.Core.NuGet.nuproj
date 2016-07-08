@@ -1,0 +1,41 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|AnyCPU">
+      <Configuration>Debug</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|AnyCPU">
+      <Configuration>Release</Configuration>
+      <Platform>AnyCPU</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>c13a206e-7421-47b1-97b7-cc426a6a372b</ProjectGuid>
+  </PropertyGroup>
+  <PropertyGroup>
+    <OutDir Condition="'$(LocalNuGet)' != ''">$(LocalNuGet)</OutDir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NuProjPath Condition=" '$(NuProjPath)' == '' ">$(MSBuildExtensionsPath)\NuProj\</NuProjPath>
+  </PropertyGroup>
+  <Import Project="$(NuProjPath)\NuProj.props" Condition="Exists('$(NuProjPath)\NuProj.props')" />
+  <PropertyGroup Label="Configuration">
+    <Id>ZBrad.AsyncLib.NetCore10</Id>
+    <Version>1.0.0-beta</Version>
+    <Title>ZBrad.AsyncLib.NetCore10</Title>
+    <Authors>Brad Merrill</Authors>
+    <Owners>Brad Merrill</Owners>
+    <Summary>ZBrad's Async Collections Library</Summary>
+    <Description>Async aware collection classes.  Currently supports list, queue, ordered list, ordered queue, and wait queue (a blocking queue).</Description>
+    <ReleaseNotes>
+    </ReleaseNotes>
+    <ProjectUrl>https://github.com/zbrad/AsyncLib</ProjectUrl>
+    <LicenseUrl>https://github.com/zbrad/AsyncLib/LICENSE</LicenseUrl>
+    <Copyright>Copyright © ZBrad LLC</Copyright>
+    <Tags>async</Tags>
+    <IconUrl>https://github.com/zbrad/AsyncLib/ZBrad.png</IconUrl>
+    <OutputPath>bin\$(Configuration)\</OutputPath>
+  </PropertyGroup>
+  <Import Project="$(NuProjPath)\NuProj.targets" />
+</Project>
